@@ -1,0 +1,11 @@
+version: '3.4'
+
+services:
+  basler-grabber:
+    volumes:
+      - ../basler-grabber/src:/src/
+    stdin_open: true
+    tty: true
+    env_file:
+      - ./settings-common.env
+      - ./settings-${DEPLOY_ENV}.env

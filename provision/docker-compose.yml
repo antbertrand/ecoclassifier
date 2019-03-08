@@ -1,0 +1,23 @@
+version: '3.4'
+
+services:
+  # Image grabber
+  basler-grabber:
+    image: ${DOCKER_REGISTRY:-}numericube/basler-grabber:${DEPLOY_TAG:-latest}
+    build: ../basler-grabber
+    environment:
+      - DEPLOY_ENV
+      - DEPLOY_TAG
+    env_file:
+      - ./settings-common.env
+      - ./settings-${DEPLOY_ENV}.env
+    volumes:
+      - images:/var/images
+    # ports:
+    #   - "9080:80"
+
+# Persistent volumes
+volumes:
+  # static: # This is where we put static files (ie. collectstatic)
+  htdocs:     # This is where we put static files
+  images:     # Where images are stored

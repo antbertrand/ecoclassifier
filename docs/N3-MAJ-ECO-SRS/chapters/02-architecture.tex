@@ -1,0 +1,76 @@
+%!TeX encoding = UTF-8
+%!TeX root = ../main.tex
+\chapter{Architecture (hardware and software)}
+\label{chapter:architecture}
+
+This chapter explains the general architecture of the project, on both hardware and software points of view.
+
+\section{Hardware architecture}
+
+The eco-classifier project has the following hardware parts:
+
+\begin{itemize}
+    \item One front-facing USB3 camera
+    \item One top-facing USB3 camera
+    \item Physical cables to connect those to the main PC
+    \item A light panel
+    \item A main analysis PC (which is where most of this project should be running)
+    \item An ethernet cable connecting the main PC to the Profinet-enabled automate
+    \item An outbound (internet) link?
+\end{itemize}
+
+Nothing more.
+
+\todo{Describe the cameras, specifications, etc}
+
+\section{Software architecture}
+
+The architecture is different for each part of the project, namely:
+
+\begin{itemize}
+    \item Image grabbing and capturing (for dataset-building phase)
+    \item Deep-Learning computation (for training phase)
+    \item Inference (for inference phase)
+\end{itemize}
+
+This repository contains all the required code for the three phases, but this code cannot execute
+on the same machine at each step.
+
+Some code require hardware parts to run (dataset building and inference need the cameras), some don't
+(deep-learning training doesn't require anything else but a powerful GPU).
+
+The following section is thus split in those different phases.
+
+\subsection{Image grabbing}
+
+The image grabbing part consists in a software piece that reads from (both) cameras and record enough images to
+allow a careful analysis of the captured images.
+
+Capture must be as close as possible to the real conditions of the project.
+
+Capture must retain as much elements as possible but not overflow the hard drives.
+
+Capture is made through an OpenCV + Basler software combination. The general flow is:
+
+\begin{enumerate}
+    \item Open cameras, start acquiring (without saving on disk)
+    \item If "something moves" on camera, start the recording process
+    \item Record as much frames as possible to ensure high resolution acquisition
+    \item Close camera (and start over)
+    \item Upload material on an Azure blob
+\end{enumerate}
+
+This piece of software must be installed on a temporary PC that will be plugged to the cameras.
+
+The software must start when the PC starts (to handle reboots)
+
+The acquired images must be either uploaded or accessed remotely. Thus, the PC needs a permanent or semi-permanent internet connexion.
+
+\subsubsection{Requirements}
+
+\begin{itemize}
+    \item Python >= 3.6
+    \item OpenCV
+    \item Basler software (bundled!)
+    \item Semi-async mode (main loop for image capture, async mode for the upload part)
+\end{itemize}

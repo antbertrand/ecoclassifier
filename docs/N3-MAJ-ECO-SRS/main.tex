@@ -1,0 +1,157 @@
+% !TeX encoding = UTF-8
+% !TeX spellcheck = en_EN
+% !TeX program = xelatex
+% !TeX TXS-program:compile = txs:///xelatex/[--shell-escape]
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%             GLOBAL PARAMETERS AND INCLUDES                  %%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% Language (french, english, spanish)
+\def\defaultlang{english}
+
+% The magic config stuff
+\input{include/config}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%          ADDITIONAL / CUSTOM CONFIGURATION                  %%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\usepackage{csvsimple}
+
+% http://www.texample.net/tikz/examples/android/
+\usetikzlibrary{arrows.meta}
+\tikzset{%
+  >={Latex[width=2mm,length=2mm]},
+  % Specifications for style of nodes:
+            base/.style = {rectangle, rounded corners, draw=black,
+                           minimum width=4cm, minimum height=1cm,
+                           text centered, font=\sffamily},
+            blue/.style = {base, fill=blue!30},
+             red/.style = {base, fill=red!30},
+           green/.style = {base, fill=green!30},
+        ttfamily/.style = {base, minimum width=2.5cm, fill=orange!15,
+                           font=\ttfamily},
+}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%                  DOCUMENT INFORMATION                       %%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Except where indicated, all variables are mandatory.
+% doctitle = title (document title / document type)
+% project = PROJECT
+\newcommand{\doctitle}{Software Development Plan}
+\newcommand{\project}{NumeriCube (transverse quality document)}
+
+% Main doc author (that would be you ;))
+\newcommand{\authorname}{Pierre-Julien Grizel (NumeriCube)}
+\newcommand{\authoremail}{pjgrizel@numericube.com}
+
+% Document information and version. Docrefs are N3-CUS-PRJ-TYP
+% Where N3 is N3 ;)
+% CUS is a customer trigram
+% PRJ is a project trigram
+% TYP is a type of doc (SRS, TEC, TST, ...)
+\newcommand{\docref}{N3-INT-DMK-TEC}
+
+% Customer full name and logo
+\newcommand{\customer}{NumeriCube (internal customer)}
+\newcommand{\logoCustomerBW}{assets/customer-logo-black.png}
+
+% Doc diffusion. If you don't want to include recipients, just comment them.
+% \newcommand{\destA}{Firstname / Lastname of customer}
+% \newcommand{\destB}{Firstname / Lastname of customer}
+
+% Logos (EPS format please). Remove if you don't have.
+
+% XXX TODO
+% % Texto
+% % \newcommand{\miGrado}{Grado en Ingeniería en Sonido e Imagen en Telecomunicación}
+% % Datos del tutor/es
+% \newcommand{\departamentoTutor}{Departamento del tutor}
+% \newcommand{\departamentoTutorB}{Departamento del cotutor}
+% % Datos de la facultada y universidad
+% \newcommand{\miFacultad}{Escuela Politécnica Superior}
+% \newcommand{\miFacultadCorto}{EPS UA}
+% \newcommand{\miUniversidad}{\protect{Universidad de Alicante}}
+% \newcommand{\miUbicacion}{Alicante}
+
+% Metadata information to be used inside the PDF file.
+\hypersetup{
+pdfauthor = {\authorname~(\authoremail)},
+pdftitle = {\doctitle},
+}
+
+%%
+% Archivo de acrónimos
+%%
+\makeglossaries % Genera la base de datos de acrónimos
+\input{glossary.tex} % Archivo que contiene los acrónimos
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%                    THE DOCUMENT ITSELF                      %%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{document}
+
+% Números romanos hasta el mainmatter.
+\frontmatter
+
+% COVER PAGE
+\input{include/cover_color} % Portada Color
+\input{include/cover_bw} % Portada B/W
+
+% A partir de aquí aplica los márgenes establecidos en configuracioninicial.tex
+\restoregeometry
+
+%%%%% PREAMBULO
+% Incluye el .tex que contiene el preámbulo, agradecimientos y dedicatorias.
+\input{include/release-history}
+
+
+% Incluye después del archivo anterior el indice y lista de figuras, tablas y códigos.
+\tableofcontents	% Índice
+% \listoffigures		% Índice de figuras
+% \listoftables		% Índice de tablas
+% \lstlistoflistings	% Índice de códigos
+
+% Inicia la numeración habitual.
+\mainmatter
+
+%%%%
+% MAIN CONTENT. CAREFUL: SHELL EXTENSIONS ARE MANDATORY
+%%%%
+% Use the following line to automatically include all chapters.
+% Harder to debug, though.
+% \inputAllFiles{.}% from the current dir
+
+% Use the following lines to include chapters one by one.
+\input{chapters/01-introduction.tex}
+\input{chapters/02-architecture.tex}
+
+%%%%
+% CONTENIDO. Appendices
+%%%%
+\appendix % Inicio de los apéndices
+% \input{annexes/00-commit-history}
+% \input{annexes/01-dmake-user-manual.tex}
+% \input{annexes/02-autodoc.tex}
+\input{annexes/03-dataset-management.tex}
+\input{annexes/04-must-read.tex}
+
+\todototoc
+\listoftodos
+
+%%%%
+% BIBLIOGRAPHY AND GLOSSARY
+%%%%
+\nocite{*} % Include ALL articles in bibliography even if not cited
+\bibliography{bibliography} % Bibliography content
+\bibliographystyle{apacite}
+
+\printglossary[style=altlist,type=\acronymtype,title={Terms, definitions, and abbreviations}]
+\glsaddallunused
+
+\input{include/cover_back}
+
+\end{document}

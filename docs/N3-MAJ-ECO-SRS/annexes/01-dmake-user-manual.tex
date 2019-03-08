@@ -1,0 +1,166 @@
+%!TeX encoding = UTF-8
+%!TeX root = ../main.tex
+\chapter{Dmake user manual}
+\label{chapter:dmakeman}
+
+This chapter is a basic revamp of \texttt{dmake.py} online documentation.
+
+\section{General information}
+
+\texttt{dmake}\footnotemark is the main entrypoint for Docker+Swarm managed projects.
+\footnotetext{This is probably not your favorite name. It just means "Docker make".
+Not fancy but does the job.}
+
+\subsection{About dmake}
+
+\todo{Explain the fundamentals behind dmake}
+
+\subsection{Prerequisites}
+
+In order to use dmake, you need:
+
+\begin{itemize}
+    \item A POSIX-compliant operating system
+    \item Python installed and in the \texttt{PATH}
+    \item Access to NumeriCube's \gls{github} repository holding dmake
+    \item You must work on a \gls{github}-hosted project (starting with \texttt{git clone})
+\end{itemize}
+
+\subsection{Getting started}
+
+You must ensure the prerequisites above are fulfilled.
+
+Before going any further, you must include \texttt{dmake} in your project.
+
+To do so, you must have access to NumeriCube's git repository holding \texttt{dmake}. As of feb 2019, dmake is only available from a GitHub private repo.
+
+Here's the procedure to use dmake on a project:
+
+\begin{itemize}
+    \item Go to your project root
+    \item \texttt{mkdir ./provision}
+    \item \texttt{mkdir ./docs}
+    \item Run \texttt{git submodule add https://github.com/numericube/dmake.git ./provision/dmake}
+    \item Run \texttt{ln -s ./provision/dmake/dmake.py .}
+    \item (optional) Run \texttt{dmake bootstrap -w} \emph{project\_name}
+    \item Edit your \texttt{README} file to add the following text:
+        \begin{lstlisting}[style=Python-color]
+In order to populate the dmake directory, when you clone this project, run the following commands:
+$ git submodule init
+$ git submodule update
+        \end{lstlisting}
+    \item You're good to go.
+\end{itemize}
+
+\warningbox{When you include a submodule this way, other users of your main github project
+will probably find an empty \texttt{provision/dmake} folder when they clone your project.
+The \texttt{git submodule init/update} commands will take care of that but don't forget
+to put these into your \texttt{README} file.}
+
+\subsection{Basic commands}
+
+See the general philosophy section above to understand how it is working.
+
+
+\begin{lstlisting}[style=console,caption={Dmake basic usage}]
+usage: dmake.py [-h] [-v] [-e ENV] [-m MACHINE] [--aws]
+                [--aws-profile AWS_PROFILE] [--aws-region AWS_REGION]
+                [--azure]
+                {bootstrap,deploy,doc,docker,docker-compose,docker-machine,release,shell,stack,status}
+                ...
+
+Handle all commands related to the project: prepare, build, release and maintain it. Are you lost? Start with 'make.py status' or 'make.py status -h' to have hints on how to organize your stack.
+
+positional arguments:
+  {bootstrap,deploy,doc,docker,docker-compose,docker-machine,release,shell,stack,status}
+                        Action to perform on your source tree
+    bootstrap           Bootstrap a new project. Pass along complimentary
+                        options to create a project with specific settings.
+                        Files are only [OVER]written with the --write option.
+    deploy              Deploy a released stack into a production environment.
+                        IT WON'T WORK NEITHER ON DEV ENVIRONMENT NOR IF IMAGES
+                        HAS NOT BEEN PUSHED
+    doc                 Make a new release from the given source tree, ready
+                        for Continuous Integration process. If you want to
+                        create a new doc, use the following command:
+                        dmake doc --create N3-CUS-PRJ-TYP You can see the
+                        doc generation progress with dmake -v option.
+    docker              Execute docker with the proper arguments. Especially
+                        useful with '--machine'. Put your arguments in quotes
+                        to have them processed correctly (sorry). If your
+                        command starts by a modifier, add a space before it to
+                        avoid it being processed by dmake. For example:
+                        dmake docker " -help".
+    docker-compose      Execute docker-compose with the proper arguments. Pass
+                        them in quotes to have them processed correctly
+                        (sorry). If your command starts by a modifier, add a
+                        space before it to avoid it being processed by
+                        dmake. For example: dmake docker-compose "
+                        -help".
+    docker-machine      Execute docker-machine with the proper arguments. Pass
+                        them in quotes to have them processed correctly
+                        (sorry). If your command starts by a modifier, add a
+                        space before it to avoid it being processed by
+                        dmake. For example: dmake docker-machine "
+                        -help".
+    release             Make a new release from the given source tree, ready
+                        for Continuous Integration process.
+    shell               Run a sub-shell with all environment variables set
+                        according to your project settings
+    stack               Manage a (live) docker-compose stack: start, exec,
+                        inspect (attach), etc
+    status              Double-check that this project structure is up and
+                        running.
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -v, --verbose         Verbose mode
+  -e ENV, --env ENV     Environment you're working with (default=dev)
+  -m MACHINE, --machine MACHINE
+                        Specify a docker-machine name to work on. Use 'make.py
+                        status' to get available machines and don't forget the
+                        driver argument if necessary.
+  --aws                 Run everything with Amazon Web Services (esp. AWS-ECR)
+  --aws-profile AWS_PROFILE
+                        Use another (non-default) profile
+  --aws-region AWS_REGION
+                        Specify which region to use
+  --azure               Run everything within Azure
+
+\end{lstlisting}
+
+\section{Working locally}
+
+\todo{Explain what happens locally}
+
+\section{Working remotely}
+
+\subsubsection{Release}
+
+\subsection{Inspect a running stack}
+
+Simplest way to check what's running (assuming the machine is registered in your \texttt{docker-machine}
+environments):
+
+\begin{lstlisting}[style=console]
+dmake --machine <my-machine> status
+\end{lstlisting}
+
+Output looks like:
+
+\begin{lstlisting}[style=console]
+Docker Swarm Stacks
+===================
+NAME                SERVICES            ORCHESTRATOR
+n3demos-prod        2                   Swarm
+
+'n3demos-prod' stack (docker stack ps n3demos-prod --format 'table {{.Name}}\t{{.Image}}\t{{.CurrentState}}\t{{.Error}}'  -f 'Desired-state=Running' -f 'Desired-state=Ready')
+NAME                           IMAGE                                                                      CURRENT STATE         ERROR
+n3demos-prod_n3demos-nginx.1   numericube.azurecr.io/numericube/n3demos-nginx:v2019-01-22-111639-master   Running 3 weeks ago
+n3demos-prod_n3demos-front.1   numericube.azurecr.io/numericube/n3demos-vue:v2019-01-22-111639-master     Running 3 weeks ago
+
+Active services (docker service ls)
+ID                  NAME                         MODE                REPLICAS            IMAGE                                                                      PORTS
+yi5y6tizlo08        n3demos-prod_n3demos-front   replicated          1/1                 numericube.azurecr.io/numericube/n3demos-vue:v2019-01-22-111639-master     *:3000->3000/tcp, *:9080->80/tcp
+rzqf49o4fmwt        n3demos-prod_n3demos-nginx   replicated          1/1                 numericube.azurecr.io/numericube/n3demos-nginx:v2019-01-22-111639-master   *:80->80/tcp, *:443->443/tcp
+\end{lstlisting}

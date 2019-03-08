@@ -1,0 +1,127 @@
+% Glossary and acronyms management
+% See https://en.wikibooks.org/wiki/LaTeX/Glossary#Defining_symbols
+% for more information.
+%
+% La forma de definir un acrónimo es la siguiente:
+% \newacronyn{id}{siglas}{descripción}
+% Donde:
+% 	'id' es como vas a llamarlo desde el documento.
+%	'siglas' son las siglas del acrónimo.
+%	'descripción' es el texto que representan las siglas.
+%
+% Para usarlo en el documento tienes 4 formas:
+% pepper your writing with \gls{mylabel} macros (and similar) to simultaneously insert your predefined text and build the associated glossary.
+% \glsentryshort{id} - Añade solo las siglas de la id
+% \glsentrylong{id} - Añade solo la descripción de la id
+% \glsentryfull{id} - Añade tanto  la descripción como las siglas
+
+\newacronym{n3}{N3}{NumeriCube}
+\newacronym{cli}{CLI}{Command Line Interface}
+\newacronym{srs}{SRS}{Software Requirement Specifications}
+
+\newglossaryentry{github}
+{
+    name={GitHub},
+    description={
+        The source management service (owned by Microsoft).
+        See \url{https://www.github.com}
+    }
+}
+
+\newglossaryentry{travis}
+{
+    name={Travis CI},
+    description={
+        The continuous integration platform.
+        See \url{https://www.travis-ci.com}
+    }
+}
+
+\newglossaryentry{environment}{
+    name={environment},
+    description={
+        An environment is the execution context of a software (either part of it or the whole of it).
+        Environments are described clearly in \texttt{dmake} and identified by name.
+        An envionment may describe variables, accesses, databases, datasets and specific software
+        versions that make a project work. Executed code is \emph{always} run into a specific environment.
+        When no environment is explicitely defined, it is assumed that it is the \texttt{develop} environment
+        we're talking about.
+    }
+}
+
+\newglossaryentry{azure}
+{
+    name={Azure™️},
+    description={
+        Azure™️ is the cloud platform from Microsoft™️
+    }
+}
+
+\newglossaryentry{aws}
+{
+    name={Amazon Web Services™️},
+    description={
+        Amazon Web Services™️ is the cloud platform from Amazon™️
+    }
+}
+
+\newglossaryentry{release}
+{
+    name={release},
+    description={
+        A release is a state of a specific repository branch at a given date and time that is marked by a tag.
+        Release tags are always of the form \texttt{v2019-01-01-123212-branch} where 2019-01-01 is the date
+        the tag has been created, 123212 is the time (hours, minutes, seconds) and \emph{branch} is the name
+        of the branch in the code repository that's being released.
+    }
+}
+
+\newglossaryentry{saas}
+{
+    name={SaaS},
+    description={
+        SaaS stands for Software as a Service.
+        A software compenent that is not executed from a local machine or server
+        but accessed through a cloud service provider.
+    }
+}
+
+\newglossaryentry{draft}
+{
+    name={Draft},
+    description={
+        A draft document is a document that is neither production-grade nor
+        delivery-grade. A document whose reference is postfixed by the "\-DRAFT"
+        mention is a document that has been generated during development process
+        with misalignment between the repository revision and the moment it's been
+        generated.
+    }
+}
+
+% \newglossaryentry{real number}
+% {
+%   name={real number},
+%   description={GROUMPF. include both rational numbers, such as $42$ and
+%                $\frac{-23}{129}$, and irrational numbers,
+%                such as $\pi$ and the square root of two; or,
+%                a real number can be given by an infinite decimal
+%                representation, such as $2.4871773339\ldots$ where
+%                the digits continue in some way; or, the real
+%                numbers may be thought of as points on an infinitely
+%                long number line},
+%   symbol={\ensuremath{\mathbb{R}}}
+% }
+
+\newglossaryentry{docker}
+{
+  name={Docker},
+  description={include both rational numbers, such as $42$ and
+               $\frac{-23}{129}$, and irrational numbers,
+               such as $\pi$ and the square root of two; or,
+               a real number can be given by an infinite decimal
+               representation, such as $2.4871773339\ldots$ where
+               the digits continue in some way; or, the real
+               numbers may be thought of as points on an infinitely
+               long number line},
+  symbol={\ensuremath{\mathbb{R}}}
+}
