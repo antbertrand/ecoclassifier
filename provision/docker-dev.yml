@@ -4,8 +4,12 @@ services:
   basler-grabber:
     volumes:
       - ../basler-grabber/src:/src/
+      - ../basler-grabber/docker-entrypoint.sh:/usr/local/bin/docker-entrypoint.sh
+      - images:/var/images
     stdin_open: true
     tty: true
     env_file:
       - ./settings-common.env
       - ./settings-${DEPLOY_ENV}.env
+    devices:
+      - "/dev/ttyp0:/dev/ttyp0"

@@ -11,8 +11,8 @@ services:
     env_file:
       - ./settings-common.env
       - ./settings-${DEPLOY_ENV}.env
-    volumes:
-      - images:/var/images
+    command:
+      - /bin/sleep 2147483647d
     # ports:
     #   - "9080:80"
 

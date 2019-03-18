@@ -21,7 +21,7 @@ ADD ./src/ /src/
 ENV PYTHONUNBUFFERED 1
 
 # Prepare our entrypoint command
-#COPY ./docker-entrypoint.sh /usr/local/bin/
+COPY ./docker-entrypoint.sh /usr/local/bin/
 
 # Use dockerize to handle configuration templates and container readyness sync.
 # See: https://github.com/jwilder/dockerize
@@ -31,7 +31,7 @@ RUN wget https://github.com/jwilder/dockerize/releases/download/$DOCKERIZE_VERSI
     && rm dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz
 
 # Execute migrations and set superuser info (ONCE THE DB IS UP AND RUNNING!!)
-#ENTRYPOINT ["dockerize", "-wait", "tcp://db:5432", "-timeout", "30s", "/usr/local/bin/docker-entrypoint.sh"]
+ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
 
 # Run our app when the container launches
 #CMD ["django-admin", "runserver", "0.0.0.0:8000"]
