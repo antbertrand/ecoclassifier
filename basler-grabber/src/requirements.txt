@@ -2,4 +2,8 @@
 opencv-python
 
 # Basler stuff
-https://github.com/basler/pypylon/releases/download/1.4.0rc1/pypylon-1.4.0rc1-cp35-cp35m-linux_x86_64.whl
+#https://github.com/basler/pypylon/releases/download/1.4.0rc1/pypylon-1.4.0rc1-cp35-cp35m-linux_x86_64.whl
+#pylon application
+python3
+swig >= 3.0.12
+#pypylon
