@@ -1,5 +1,5 @@
 # coding: utf-8
-#import camera
+import camera
 import numpy as np
 import cv2
 import os
@@ -8,10 +8,10 @@ import argparse
 from pyzbar import pyzbar
 
 # construct the argument parser and parse the arguments
-ap = argparse.ArgumentParser()
-ap.add_argument("-i", "--image", required=True,
-	help="path to input image")
-args = vars(ap.parse_args())
+#ap = argparse.ArgumentParser()
+#ap.add_argument("-i", "--image", required=True,
+#	help="path to input image")
+#args = vars(ap.parse_args())
 
 #Init ALL cameras
 cam = camera.Camera()
@@ -45,4 +45,4 @@ if __name__ == "__main__":
 
         	# print the barcode type and data to the terminal
         	print("[INFO] Found {} barcode: {}".format(barcodeType, barcodeData))
-        time.sleep(1)
+        time.sleep(0.05)

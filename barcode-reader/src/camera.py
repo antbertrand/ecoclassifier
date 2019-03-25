@@ -114,15 +114,15 @@ class Camera(object):
                 cameraContextValue = grabResult.GetCameraContext()
 
                 # Print the index and the model name of the camera.
-                print("Camera ", cameraContextValue, ": ", self.cameras[cameraContextValue].GetDeviceInfo().GetModelName())
+                #print("Camera ", cameraContextValue, ": ", self.cameras[cameraContextValue].GetDeviceInfo().GetModelName())
 
                 # Now, the image data can be processed.
-                print("GrabSucceeded: ", grabResult.GrabSucceeded())
-                print("SizeX: ", grabResult.GetWidth())
-                print("SizeY: ", grabResult.GetHeight())
+                #print("GrabSucceeded: ", grabResult.GrabSucceeded())
+                #print("SizeX: ", grabResult.GetWidth())
+                #print("SizeY: ", grabResult.GetHeight())
                 img = grabResult.GetArray()
-                print("Gray value of first pixel: ", img[0, 0])
-                img = cv2.cvtColor(img, cv2.COLOR_BAYER_RG2RGB)
+                #print("Gray value of first pixel: ", img[0, 0])
+                #img = cv2.cvtColor(img, cv2.COLOR_BAYER_RG2RGB)
 
                 return img
 
