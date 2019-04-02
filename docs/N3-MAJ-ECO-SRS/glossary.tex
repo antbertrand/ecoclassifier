@@ -20,6 +20,15 @@
 \newacronym{srs}{SRS}{Software Requirement Specifications}
 \newacronym{plc}{PLC}{Programmable Logic Controller}
 
+\newglossaryentry{heartbeat}
+{
+    name={heartbeat},
+    description={
+        A variable that's read from the \gls{plc} and written back every 10~seconds or so.
+        If the variable is not updated in this delay, the \gls{plc} declares the camera software as faulty.
+    }
+}
+
 \newglossaryentry{github}
 {
     name={GitHub},

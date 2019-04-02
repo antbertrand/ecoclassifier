@@ -1,0 +1,84 @@
+%!TeX encoding = UTF-8
+%!TeX root = ../main.tex
+\chapter{Sample Snap7 session}
+\label{chapter:snap7}
+
+This is an example of a successful Snap7 session.
+
+\begin{lstlisting}[style=Python-color,caption={Sample Snap7 session}]
+(ve_majurca) eurosilicone@eurosilicone-NUC8i3BEH:~/Bureau/majurca-ecoclassifier$ vi ve_majurca/lib/python3.6/site-packages/snap7/client.py
+(ve_majurca) eurosilicone@eurosilicone-NUC8i3BEH:~/Bureau/majurca-ecoclassifier$ python
+Python 3.6.7 (default, Oct 22 2018, 11:32:17)
+[GCC 8.2.0] on linux
+Type "help", "copyright", "credits" or "license" for more information.
+>>> import snap7
+>>> sn = snap7.client.Client()
+>>> sn.connect('192.168.0.1', 0, 1)
+
+# This is before PLC has been configured correctly
+>>> sn.db_read(42, 0, 1)
+b'CLI : function refused by CPU (Unknown error)'
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+  File "/home/eurosilicone/Bureau/majurca-ecoclassifier/ve_majurca/lib/python3.6/site-packages/snap7/client.py", line 145, in db_read
+    check_error(result, context="client")
+  File "/home/eurosilicone/Bureau/majurca-ecoclassifier/ve_majurca/lib/python3.6/site-packages/snap7/common.py", line 65, in check_error
+    raise Snap7Exception(error)
+snap7.snap7exceptions.Snap7Exception: b'CLI : function refused by CPU (Unknown error)'
+
+# Ok, so now PLC is configured correctly, let's start again
+>>> sn.disconnect()
+>>> sn.connect('192.168.0.1', 0, 1)
+>>> sn.db_read(43, 0, 1)
+bytearray(b'\x00')
+>>> sn.db_read(42, 0, 1)
+b'CPU : Address out of range'
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+  File "/home/eurosilicone/Bureau/majurca-ecoclassifier/ve_majurca/lib/python3.6/site-packages/snap7/client.py", line 145, in db_read
+    check_error(result, context="client")
+  File "/home/eurosilicone/Bureau/majurca-ecoclassifier/ve_majurca/lib/python3.6/site-packages/snap7/common.py", line 65, in check_error
+    raise Snap7Exception(error)
+snap7.snap7exceptions.Snap7Exception: b'CPU : Address out of range'
+>>> sn.db_read(43, 0, 1)
+bytearray(b'\x00')
+>>> sn.db_read(43, 0, 2)
+bytearray(b'\x00+')
+>>> sn.db_read(43, 0, 10)
+b'CPU : Address out of range'
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+  File "/home/eurosilicone/Bureau/majurca-ecoclassifier/ve_majurca/lib/python3.6/site-packages/snap7/client.py", line 145, in db_read
+    check_error(result, context="client")
+  File "/home/eurosilicone/Bureau/majurca-ecoclassifier/ve_majurca/lib/python3.6/site-packages/snap7/common.py", line 65, in check_error
+    raise Snap7Exception(error)
+snap7.snap7exceptions.Snap7Exception: b'CPU : Address out of range'
+>>> sn.db_read(43, 0, 8)
+b'CPU : Address out of range'
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+  File "/home/eurosilicone/Bureau/majurca-ecoclassifier/ve_majurca/lib/python3.6/site-packages/snap7/client.py", line 145, in db_read
+    check_error(result, context="client")
+  File "/home/eurosilicone/Bureau/majurca-ecoclassifier/ve_majurca/lib/python3.6/site-packages/snap7/common.py", line 65, in check_error
+    raise Snap7Exception(error)
+snap7.snap7exceptions.Snap7Exception: b'CPU : Address out of range'
+>>> sn.db_read(43, 0, 4)
+bytearray(b'\x00+\x00,')
+>>> ord(42)
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+TypeError: ord() expected string of length 1, but int found
+>>> asc(43)
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+NameError: name 'asc' is not defined
+>>> chr(43)
+'+'
+>>> ord(',')
+44
+>>> sn.db_write(43, 0, b'x')
+>>> ord('x')
+120
+>>> sn.db_write(43, 0, b'\x00x')
+>>>
+\end{lstlisting}

@@ -1,0 +1,52 @@
+%!TeX encoding = UTF-8
+%!TeX root = ../main.tex
+\chapter{Software requirements}
+\label{chapter:softwarereqs}
+
+This chapter explains software requirements for the application
+
+\section{Basic Requirements}
+
+The OS is Linux (headless), Debian or Ubuntu.
+
+\todo{Specify OS needs here}
+
+We also need:
+
+\begin{itemize}
+    \item Docker, >= 18.0.9
+    \item Docker-compose, >= 1.23.2
+\end{itemize}
+
+\section{Containers}
+
+The containers deployed on the project are the following:
+
+\subsection{\texttt{ecoclassifier-main}}
+
+This is the container holding the main camera program.
+
+It has the main loop.
+
+\notebox{If we have performance issues and/or problems to keep up with the \gls{heartbeat},
+we could add another container to handle the heartbeat specifically.}
+
+Here's the list of software that must be configured on the container:
+
+\begin{itemize}
+    \item Python >= 3.6
+    \item OpenCV
+    \item Snap7 software (for \gls{plc} communication)
+    \item Basler software (bundled with our Dockerfile!)
+    \item Semi-async mode (main loop for image capture, async mode for the upload part)
+    \item Keras
+    \item Usual requirements.txt additional packages
+\end{itemize}
+
+Plus we have to enable the following service/packages/libraries:
+
+\begin{itemize}
+    \item \texttt{Sentry} (see \url{https://sentry.io}) to report exceptions
+    \item \texttt{timeout-decorator} (see \url{https://github.com/pnpnpn/timeout-decorator})
+    \item \texttt{Tenacity} (see \url{https://github.com/jd/tenacity})
+\end{itemize}

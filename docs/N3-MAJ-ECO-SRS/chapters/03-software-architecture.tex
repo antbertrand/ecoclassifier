@@ -1,0 +1,102 @@
+%!TeX encoding = UTF-8
+%!TeX root = ../main.tex
+\chapter{Architecture (software)}
+\label{chapter:softarchitecture}
+
+The architecture is slightly different for each phase of the project, namely:
+
+\begin{itemize}
+    \item Image grabbing and capturing (for dataset-building phase)
+    \item Deep-Learning computation (for training phase)
+    \item Inference (for inference phase)
+\end{itemize}
+
+This repository contains all the required code for the three phases, but this code cannot execute
+on the same machine at each step.
+
+Some code require hardware parts to run (dataset building and inference need the cameras), some don't
+(deep-learning training doesn't require anything else but a powerful GPU).
+
+The following section is thus split in those different phases.
+
+\section{Image grabbing (training)}
+
+The image grabbing part consists in a software piece that reads from (both) cameras and record enough images to
+allow a careful analysis of the captured images.
+
+Capture must be as close as possible to the real conditions of the project.
+
+Capture must retain as much elements as possible but not overflow the hard drives.
+
+Capture is made through an OpenCV + Basler software combination. The general flow is:
+
+\begin{enumerate}
+    \item Open cameras, start acquiring (without saving on disk)
+    \item If "something moves" on camera, start the recording process
+    \item Record as much frames as possible to ensure high resolution acquisition
+    \item Close camera (and start over)
+    \item Upload material on an Azure blob
+\end{enumerate}
+
+This piece of software must be installed on a temporary PC that will be plugged to the cameras.
+
+The software must start when the PC starts (to handle reboots)
+
+The acquired images must be either uploaded or accessed remotely. Thus, the PC needs a permanent or semi-permanent internet connexion.
+
+\section{System architecture}
+
+Inside this operating system runs a \gls{docker} container that will contain the main loop of our program.
+
+The installation procedure for the non-docker part should be ultra-trivial.
+
+\subsection{Main system installation}
+
+Here's the general outline for software installation:
+
+\begin{itemize}
+    \item Install a bare-naked Linux-based Operating System
+    \item Install \gls{docker} and \texttt{docker-compose} on this OS
+    \item Install \texttt{supervisord} to manage automatic launch at start-time (see \url{http://supervisord.org/})
+\end{itemize}
+
+That's about it.
+
+
+\section{Program architecture}
+
+The main Majurca Ecoclassifier program runs in a PC that's connected to the machine and to the \gls{plc}.
+
+\todo{Decide if the \gls{heartbeat} is in the same thread or in another thread}
+
+It's composed of a few different component/software blocks that all have a specific purpose.
+
+\subsection{Main loop}
+
+Main loop's purpose is to open necessary connexions, listen to the \gls{plc} and decide what to do depending on what's available here.
+
+Here's the list of tasks this section must provide:
+
+\begin{enumerate}
+    \item Handle the \gls{heartbeat} (see \ref{section:heartbeat})
+    \item Check if a barcode scan has to be performed (see \ref{section:barcode})
+    \item Check if a plastic recognition task has to be performed (see \ref{section:classifier})
+    \item Wait for a little while and go back to step 1
+\end{enumerate}
+
+
+
+\section{Maintenance, diagnosis}
+
+\subsection{Automatic restart}
+
+\todo{Decide what's the best policy here}
+
+We have to use either Docker's auto-restart or Supervisor's auto-restart policy here.
+
+For Docker's policies, see \url{https://docs.docker.com/config/containers/start-containers-automatically/}
+
+
+\subsection{Automatic update}
+
+\todo{Describe here}
