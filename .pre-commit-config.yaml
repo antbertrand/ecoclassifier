@@ -6,7 +6,7 @@ repos:
 -   repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v1.2.3
     hooks:
-    - id: flake8
+#    - id: flake8
     - id: check-yaml
 #-   repo: https://github.com/asottile/dead
 #    rev: v0.0.6
