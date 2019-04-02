@@ -1,0 +1,6 @@
+pylon application
+python3
+swig >= 3.0.12
+pypylon
+libzbar0
+pyzbar
