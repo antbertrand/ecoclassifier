@@ -1,0 +1,54 @@
+# Travis CI continuous integration management
+# mandatory for pip3 usage
+sudo: false
+dist: trusty
+
+# language
+language: python
+python:
+  - "3.6"
+
+env:
+    - DOCKER_COMPOSE_VERSION=1.23.2 DEPLOY_ENV=dev
+
+before_install:
+    # Update Docker-Compose
+    - sudo rm /usr/local/bin/docker-compose
+    - curl -L https://github.com/docker/compose/releases/download/${DOCKER_COMPOSE_VERSION}/docker-compose-`uname -s`-`uname -m` > docker-compose
+    - chmod +x docker-compose
+    - sudo mv docker-compose /usr/local/bin
+    - docker --version
+    - /usr/local/bin/docker-compose --version
+
+    # install dmake
+    - pip install --upgrade pip
+    - pip --version
+    - pip install https://numericube.blob.core.windows.net/dmake-public/dmake-generic-py3-none-any.whl
+    - dmake --version
+
+    # Start our development stack
+    - dmake -v stack start --detach
+
+    # Gather various information about our environment, useful for debugging
+    - dmake stack --container=ecoclassifier exec pip freeze
+
+# Run tests against the development stack.
+# Don't forget to run tests for all your environments!
+script:
+    - dmake -v stack --container=ecoclassifier exec py.test /ecoclassifier/
+
+# Now the build is NOT broken so we allow construction of the documentation
+# and we push to github's release.
+before_deploy:
+    - dmake doc
+
+deploy:
+    provider: releases
+    api_key:
+        secure: CPUbprtIJ0hLoMwRw6x/yaoV6Qeo4VscBaDH+mjOS1BvQhGhudEdUPPSypbF+drf17N1vxc8Lnc4Z26G5VwhbwM+eP1Q6PYam+L60SvAnV4nWxO6fGhFmsF4UxTek2MYAuQoq32gTiSYRM4pFd8whiGWt6pxcxXD7oQEHYeBhSV6DFfmT9uwOznozAvrF8MSTzpiuWZPldVlpnUASxrlKvoickhHRwLRvngEbE2WSKUQNmF4nt5qvIdFfw24OwjvLe150c8FyiW+8qNkIyw9fSuSW4KWBlGlk2wZumOGU28dFwUJY4I6Nc5wq0rI7wj1SQBgAW4U8dpDZMu8CobXjTwBcLm2Vq9ac8ApYItyUsLx3l+zKwUluNTh99AAHchxBJDx726Wz2+5uqDOLh7aXfk21FIq90c1l7Z6wpwPv3xoskIZVgJKh4XGFFYR9fFixhAJv225tWRBjruWEZxBgCPrkCQhNUd4/snqtMACTJCpwbnDCo00vgPMhBRs0WHc57tfoOFScxKLTDSxanbSkI5zYc4oUQdU6IEuciyQpjonhlIS1YsbMqPOOiYKLn1qsGgvKV72RFvXmb8o74QQns0fGnBiZCQqR2IN0D+SL76P7m1Wc+nQir8MdDrmUFXTixXDkeJh2WAIK64FI6p6s5EwfynRaUGSpZoOUyLiroQ=
+    file_glob: true
+    file: ./docs/build/*
+    skip_cleanup: true
+    on:
+        all_branches: true
+        tags: true
