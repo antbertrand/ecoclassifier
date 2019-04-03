@@ -45,12 +45,14 @@ The barcode reader function must:
 
 \begin{enumerate}
     \item Open the camera
-    \item Read a barcode
+    \item Check that the \gls{plc} command is still "barcode reading", if not skip next step
+    \item Read a barcode if present (if not present, return to previous step)
     \item Close the camera
-    \item Transmit the barcode value to the \gls{plc}
+    \item Transmit the barcode value and/or status to the \gls{plc} if we have it
 \end{enumerate}
 
-\importantbox{What do we do if NO barcode can be read? Is there a timeout? How long?}
+\importantbox{If no codebar can be read, it's up to the \gls{plc} to decide to cut the connexion
+by using the command value}
 
 \section{Bootstrap module}
 

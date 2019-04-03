@@ -93,6 +93,23 @@ Here's the list of tasks this section must provide:
     \item Wait for a little while and go back to step 1
 \end{enumerate}
 
+\subsubsection{Retry strategy}
+
+If anything goes wrong in the main loop (ie. uncatched exception), we have to go back to where we were.
+
+We use \texttt{tenacity} for this with a retry strategy. In order to have the error reported \textbf{and}
+to avoid restarting the whole stack if anything goes wrong, the strategy is as follows:
+
+\begin{itemize}
+    \item Wait for 2 seconds then retry
+    \item Wait for an exponentially growing time until it reaches 600~seconds (10~minutes) (and retry)
+    \item Retry every 600 seconds
+    \item After 10 (12? 20?) retries, stop retrying, just propagate the exception \textbf{outside} the container.
+        This will stop the container and Docker-compose will take care of restarting it, thus eliminating
+        potential memory issues.
+\end{itemize}
+
+
 \subsection{\gls{plc} communication}
 
 Transfers with \gls{plc} must be done in one place only.
@@ -197,3 +214,11 @@ For Docker's policies, see \url{https://docs.docker.com/config/containers/start-
 \subsection{Automatic update}
 
 \todo{Describe here}
+
+
+
+\subsection{Remote access}
+
+Remote access can be done via Dinatec's VPN. Then the machine can be accessed via \texttt{ssh} and only \texttt{ssh}.
+
+\infobox{Dinatec's software to access the VPN is called \texttt{Sinema RC}}
