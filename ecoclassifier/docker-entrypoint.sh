@@ -6,6 +6,7 @@ set -e
 
 # Make sure we pipinstalled requirements.txt
 pip install --upgrade-strategy only-if-needed --progress-bar on -r /ecoclassifier/requirements.txt
+pip install -e /ecoclassifier
 
 # Propagate
 exec $@

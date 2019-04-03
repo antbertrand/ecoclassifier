@@ -51,8 +51,12 @@ The barcode reader function must:
     \item Transmit the barcode value and/or status to the \gls{plc} if we have it
 \end{enumerate}
 
-\importantbox{If no codebar can be read, it's up to the \gls{plc} to decide to cut the connexion
+\importantbox{If no barcode can be read, it's up to the \gls{plc} to decide to cut the connexion
 by using the command value}
+
+\importantbox{When returning to the PLC, the output value must be ASCII characters (ie. starting from 64)}
+
+EAN length in the \gls{plc} is 32~characters.
 
 \section{Bootstrap module}
 

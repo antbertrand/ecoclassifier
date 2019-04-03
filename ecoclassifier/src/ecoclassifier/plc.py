@@ -24,10 +24,12 @@ import logging
 
 import snap7
 
+from . import settings
+
 # Logging configuration
 logFormatter = "[%(asctime)s] p%(process)-8s %(levelname)-8s {%(pathname)s:%(lineno)d} - %(message)s"
 logging.basicConfig(format=logFormatter, level=logging.DEBUG)
-logger = logging.get_logger(__name__)
+logger = logging.getLogger(__name__)
 
 
 class PLC(object):
@@ -42,25 +44,32 @@ class PLC(object):
 >>> sn.db_read(42, 0, 1)
     """
 
-    def __init__(self, address, param0=0, param1=1):
+    def __init__(
+        self,
+        address=settings.PLC_ADDRESS,
+        rack=settings.PLC_RACK,
+        slot=settings.PLC_SLOT,
+    ):
         """Open connexion to the PLC.
         WARNING: there's no admitted re-entry.
         """
         # Connect
         self.client = snap7.client.Client()
-        self.client.connect(address, param0, param1)
+        self.client.connect(address, rack, slot)
 
-    def read(self, table, length=1):
+    def read(self, table, index, length=2):
         """Read from PLC"""
-        return self.client.db_read(table, 0, length)
+        return self.client.db_read(table, index, length)
 
-    def write(self, table, content):
+    def write(self, table, index, content):
         """Write to PLC"""
         if isinstance(content, str):
             # This WILL raise Unicode errors, but remember we're only dealing with a PLC!
-            content = content.encode("ascii")
+            content = bytes(content.encode("ascii"))
+        elif isinstance(content, bytearray):
+            pass
         else:
             raise NotImplementedError(
                 "Don't know how to handle this type: {}".format(type(content))
             )
-        return self.client.db_write(table, 0, content)
+        return self.client.db_write(table, index, content)

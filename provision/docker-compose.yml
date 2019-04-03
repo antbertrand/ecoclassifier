@@ -9,7 +9,7 @@ services:
             - ./settings-${DEPLOY_ENV}.env
         command:
             # - /bin/sleep 2147483647d
-            - python /src/ecoclassifier/ecoclassifier.py
+            - ecoclassifier
 
 #   # Image grabber
 #   basler-grabber:

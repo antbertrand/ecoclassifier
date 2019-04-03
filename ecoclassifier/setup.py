@@ -58,5 +58,7 @@ setuptools.setup(
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
     ],
-    entry_points={"console_scripts": ["dmake=dmake.dmake:make"]},
+    entry_points={
+        "console_scripts": ["ecoclassifier=ecoclassifier.ecoclassifier:main"]
+    },
 )

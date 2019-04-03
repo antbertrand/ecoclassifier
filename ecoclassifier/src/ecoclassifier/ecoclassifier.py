@@ -20,13 +20,15 @@ __email__ = "pjgrizel@numericube.com"
 __status__ = "Production"
 
 import os
+import time
 import logging
 
 import sentry_sdk
 import tenacity
 
 # pylint: disable=F403
-from settings import *
+from . import settings
+from . import plc
 
 # Configure Sentry
 sentry_sdk.init(os.environ["SENTRY_URL"])
@@ -46,10 +48,23 @@ class Ecoclassifier(object):
     def heartbeat(self,):
         """Provide a simple heartbeat
         """
+        heartbeat = self.client.read(
+            settings.PLC_TABLE_HEARTBEAT_READ,
+            settings.PLC_TABLE_HEARTBEAT_INDEX,
+            settings.PLC_TABLE_HEARTBEAT_LENGTH,
+        )
+        self.client.write(
+            settings.PLC_TABLE_HEARTBEAT_WRITE,
+            settings.PLC_TABLE_HEARTBEAT_INDEX,
+            heartbeat,
+        )
 
     def get_plc_command(self,):
         """Get command to execute from our PLC
         """
+        return self.client.read(
+            settings.PLC_TABLE_COMMAND_READ, settings.PLC_TABLE_COMMAND_INDEX
+        )
 
     def read_barcode(self,):
         """Try to read barcode.
@@ -62,6 +77,9 @@ class Ecoclassifier(object):
     def run(self,):
         """Main loop"""
         try:
+            # Connect PLC
+            self.client = plc.PLC(settings.PLC_ADDRESS)
+
             while True:
                 # Heartbeat
                 logger.debug("Entering loop!")
@@ -69,19 +87,25 @@ class Ecoclassifier(object):
 
                 # Depending on the PLC status, decide what to do
                 command = self.get_plc_command()
-                if command == 0:
-                    continue
+                if command == settings.PLC_COMMAND_STOP:
+                    time.sleep(settings.MAIN_LOOP_POOLING_WAIT_SECONDS)
                 elif command == 1:
                     continue
                 else:
                     raise NotImplementedError("Invalid command: {}".format(command))
+
         except Exception as e:
             logger.exception("Exception in main loop")
             sentry_sdk.capture_exception(e)
             raise
 
 
-# Main loop
-if __name__ == "__main__":
+def main():
+    """Main runtime"""
     ec = Ecoclassifier()
     exit(ec.run())
+
+
+# Main loop
+if __name__ == "__main__":
+    main()
