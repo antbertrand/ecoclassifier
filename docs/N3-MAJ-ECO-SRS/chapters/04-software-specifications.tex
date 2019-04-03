@@ -54,7 +54,18 @@ Plus we have to enable the following service/packages/libraries:
 \end{itemize}
 
 
-\subsection{Specifications}
+\subsection{Main loop}
+
+Main loop's purpose is to open necessary connexions, listen to the \gls{plc} and decide what to do depending on what's available here.
+
+Here's the list of tasks this section must provide:
+
+\begin{enumerate}
+    \item Handle the \gls{heartbeat} (see \ref{section:heartbeat})
+    \item Check if a barcode scan has to be performed (see \ref{section:barcode})
+    \item Check if a plastic recognition task has to be performed (see \ref{section:classifier})
+    \item Wait for a little while and go back to step 1
+\end{enumerate}
 
 
 

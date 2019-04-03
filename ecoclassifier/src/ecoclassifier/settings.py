@@ -35,3 +35,10 @@ PLC_COMMAND_READ_BARCODE = 1  # Read barcode
 PLC_COMMAND_LEARN_BARCODE = 11
 PLC_COMMAND_READ_MATERIAL = 2
 PLC_COMMAND_LEARN_MATERIAL = 22
+
+# Cameras serial numbers
+# HZ is for Horizontal (front-facing) cameras.
+# VT is for Vertical (above the object) cameras.
+CAMERA_HZ_SERIALS = ()
+
+CAMERA_VT_SERIALS = ()

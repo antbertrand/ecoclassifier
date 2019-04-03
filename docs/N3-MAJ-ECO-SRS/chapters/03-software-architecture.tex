@@ -74,6 +74,12 @@ The main Majurca Ecoclassifier program runs in a PC that's connected to the mach
 
 It's composed of a few different component/software blocks that all have a specific purpose.
 
+All hardware manipulations (camera and \gls{plc}) must be done in one and only one place in the code,
+thus we need dedicated modules for camera and PLC.
+
+\warningbox{There are (at least) \textbf{two} cameras on a system, so the module must not abstract only
+one camera but a camera array. Also, it must be able to control light on a camera if necessary.}
+
 \subsection{Main loop}
 
 Main loop's purpose is to open necessary connexions, listen to the \gls{plc} and decide what to do depending on what's available here.
@@ -87,6 +93,90 @@ Here's the list of tasks this section must provide:
     \item Wait for a little while and go back to step 1
 \end{enumerate}
 
+\subsection{\gls{plc} communication}
+
+Transfers with \gls{plc} must be done in one place only.
+
+We use a singleton class, \texttt{PLC}, which completely abstracts this.
+
+\infobox{We MAY have problems with syncing with the PLC if several connexions are open at the same time.
+In this case we'll have to put a lock to make sure it doesn't open several connexions at once.}
+
+\subsection{Cameras management}
+
+There might be several cameras to handle.
+
+Each camera must have a configuration that must be "saved" into the camera.
+
+Issues to handle:
+
+\begin{itemize}
+    \item How to generate + save camera configuration?
+    \item How to apply configuration to a camera?
+    \item As we have (at least) 2 cameras to handle, how, in the configuration system,
+        shall we specify which camera to address (of course, configurations are different!)
+    \item Synchronous or asynchronous operations
+    \item Can we check if a camera output is blurry?
+    \item Handling camera heartbeat timeouts (see \url{file:///Applications/pylon%20Programmer's%20Guide%20and%20API%20Reference.app/Contents/Resources/Html/pylon_advanced_topics.html#debugging})
+\end{itemize}
+
+\subsubsection{Cameras addressing}
+
+We must find a way to fetch serial number (or IP? Or other?) of a camera in order to address it.
+
+The recommended solution is to use the \textbf{Full name} property.
+
+See this doc extract:
+
+\begin{quotation}
+Enumerating and Creating pylon Devices
+pylon offers two ways to enumerate and create pylon Devices. The first approach uses the Transport Layer Factory to enumerate cameras across multiple transport layers. The second approach lets a Transport Layer object enumerate and create pylon Devices for a specific transport layer. Before describing the different enumeration schemes, the terms Device Class and Device Info object are introduced.
+
+Device Classes
+Each transport layer can create a specific type of pylon Device. For example, the PylonGigE transport layer will create pylon Devices representing GigE Vision cameras. Each type of device is associated with a unique identifier string called Device Class. The device class identifier can be found in the DeviceClass.h header file.
+
+Device Info Objects
+The device enumeration procedure returns a list of Device Info objects. The base class for Device Info objects is Pylon::CDeviceInfo. A Device Info object uniquely describes a camera device. Device Info objects are used by a Transport Layer and the Transport Layer Factory to create camera objects representing the device described by the Device Info objects.
+
+FriendlyName:	A human readable name for the device (e.g. the camera's model name). Friendly names are not unique.
+FullName:	A unique identifier for the device. No two devices will have the same full name.
+VendorName:	The name of the vendor.
+DeviceClass:	Each transport layer can create a specific type (or class) of camera devices (e.g. IIDC 1394 or GigE Vision devices). The device types are identified by the Device Class property.
+SerialNumber:	The device's serial number. The availability of the device serial number is not guaranteed during the enumeration process, so the Serial Number Property may be undefined.
+UserDefinedName:	For some device classes, it is possible to assign a user defined name to a camera device. The value of this property is not necessarily unique.
+DeviceFactory:	The unique full name of the Transport Layer object that can create the device.
+In addition, specific transport layers will require additional properties. These properties can be accessed in a generic way by using the Pylon::IProperties interface.
+\end{quotation}
+
+Hence we must find a way to grab and store camera full names at config time and store them in constants for later use.
+
+The recommended approach here is to store them in a file in the source (like \texttt{settings.py}) that we'll update for each additional deployment. We use \texttt{CAMERA_HZ_SERIALS} and \texttt{CAMERA_VT_SERIALS} variables for these.
+
+\subsubsection{Configuration management}
+
+\todo{This has to be done}
+
+\subsubsection{Synchronous / Asynchronous operations}
+
+In order to give the best possible performance, we'll have to manage a synchronous / asynchronous mode
+for cameras management.
+
+Two approaches here:
+
+\begin{itemize}
+    \item Decide that everything is synchronous: we open the camera, grab the frames one by one
+        and analyze them on-the-fly
+    \item Use a fully asynchronous approach with a file buffer: we capture all frames, save them,
+        and it's up to the controlling program to open a file and read it.
+        If asynchronous capture is not a big deal, we'd still have to control the camera from the
+        main program (start acquiring / stop acquiring, manage lights, etc).
+        One intermediate solution could use 2 different containers: one to handle ONLY the camera
+        given the PLC status, and one other to handle control (also by reading PLC status tables).
+\end{itemize}
+
+First version will OBVIOUSLY use the first approach (synchronous operations). Second version
+could use the second approach in order to maximize efficiency even if image analysis takes
+a little time.
 
 
 \section{Maintenance, diagnosis}
