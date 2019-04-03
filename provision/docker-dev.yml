@@ -4,6 +4,7 @@ services:
     ecoclassifier:
         volumes:
             - ../ecoclassifier/src:/src/
+            - ../ecoclassifier/:/ecoclassifier/
             - ../ecoclassifier/docker-entrypoint.sh:/usr/local/bin/docker-entrypoint.sh
         stdin_open: true
         tty: true

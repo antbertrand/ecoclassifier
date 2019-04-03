@@ -1,11 +1,12 @@
 %!TeX encoding = UTF-8
 %!TeX root = ../main.tex
-\chapter{Software requirements}
+\chapter{Software specifications}
 \label{chapter:softwarereqs}
 
-This chapter explains software requirements for the application
 
-\section{Basic Requirements}
+\section{Bootstrap module}
+
+\subsection{Dependencies}
 
 The OS is Linux (headless), Debian or Ubuntu.
 
@@ -18,15 +19,16 @@ We also need:
     \item Docker-compose, >= 1.23.2
 \end{itemize}
 
-\section{Containers}
 
-The containers deployed on the project are the following:
+\section{Container: \texttt{ecoclassifier-main}}
 
-\subsection{\texttt{ecoclassifier-main}}
+\subsection{Container role}
 
 This is the container holding the main camera program.
 
 It has the main loop.
+
+\subsection{Dependencies}
 
 \notebox{If we have performance issues and/or problems to keep up with the \gls{heartbeat},
 we could add another container to handle the heartbeat specifically.}
@@ -49,4 +51,22 @@ Plus we have to enable the following service/packages/libraries:
     \item \texttt{Sentry} (see \url{https://sentry.io}) to report exceptions
     \item \texttt{timeout-decorator} (see \url{https://github.com/pnpnpn/timeout-decorator})
     \item \texttt{Tenacity} (see \url{https://github.com/jd/tenacity})
+\end{itemize}
+
+
+\subsection{Specifications}
+
+
+
+
+\section{Container: \texttt{ecoclassifier-sync}}
+
+\subsection{Container role}
+
+This is the container that syncs acquired images to our Azure BLOB.
+
+\subsection{Dependencies}
+
+\begin{itemize}
+    \item Azure Command-Line Interface
 \end{itemize}

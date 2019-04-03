@@ -6,3 +6,7 @@ https://github.com/basler/pypylon/releases/download/1.4.0/pypylon-1.4.0-cp36-cp3
 timeout-decorator==0.4.1
 tenacity==5.0.3
 sentry-sdk==0.7.9
+
+# Testing
+pytest
+pytest-mock

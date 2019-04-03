@@ -1,12 +1,14 @@
 FROM ufoym/deepo:all-py36-cpu
 
 # Copy the current directory contents into the container at /app
-ADD ./src/ /src/
-WORKDIR /src
+# ADD ./src/ /src/
+ADD . /ecoclassifier/
+WORKDIR /ecoclassifier/src
 
 # Here's our nice application!
-# RUN pip install --upgrade pip
-# RUN pip install -e .
+RUN pip install --upgrade pip
+RUN pip install -r /ecoclassifier/requirements.txt
+RUN pip install -e /ecoclassifier/
 
 # Install Snap7
 RUN add-apt-repository ppa:gijzelaar/snap7 -y && \
