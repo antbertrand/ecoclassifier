@@ -150,7 +150,7 @@ In addition, specific transport layers will require additional properties. These
 
 Hence we must find a way to grab and store camera full names at config time and store them in constants for later use.
 
-The recommended approach here is to store them in a file in the source (like \texttt{settings.py}) that we'll update for each additional deployment. We use \texttt{CAMERA_HZ_SERIALS} and \texttt{CAMERA_VT_SERIALS} variables for these.
+The recommended approach here is to store them in a file in the source (like \texttt{settings.py} ) that we'll update for each additional deployment. We use \texttt{CAMERA\_HZ\_SERIALS} and \texttt{CAMERA\_VT\_SERIALS} variables for these.
 
 \subsubsection{Configuration management}
 
@@ -177,6 +177,10 @@ Two approaches here:
 First version will OBVIOUSLY use the first approach (synchronous operations). Second version
 could use the second approach in order to maximize efficiency even if image analysis takes
 a little time.
+
+\subsection{Barcode reading}
+
+We use \url{https://github.com/NaturalHistoryMuseum/pyzbar/}.
 
 
 \section{Maintenance, diagnosis}

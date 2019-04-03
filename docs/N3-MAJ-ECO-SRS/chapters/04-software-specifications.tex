@@ -3,6 +3,54 @@
 \chapter{Software specifications}
 \label{chapter:softwarereqs}
 
+\section{Bootstrap module}
+
+The bootstrap module must initialize Docker, Docker-compose and must update our program to the latest
+version (by downloading from the internet).
+
+As we have absolutely no guarantee that anyone could see anything (neither on the \gls{plc} nor computer screen),
+we must echo BEEPs in order to signal a problem.
+
+Hence, a few seconds/minutes after PC boot, one should hear a signal indicating if everything went along.
+The signal is the following:
+
+\begin{table}[ht]
+	\centering
+	% {\scalefont{0.9}
+	\begin{tabular}{@{}ll@{}}
+	\toprule
+        Number of beeps &   Meaning \\ \midrule
+        0               &   No initialization: bootstrap didn't run at all. \\
+        1               &   Bootstrap ok, update ok, containers up and running. \\
+        2               &   No internet. Containers are up and running but out-to-date. \\ \bottomrule
+	\end{tabular}
+	% }
+	\caption{Meaning of startup beeps.}
+	\label{table:beeps}
+\end{table}
+
+Here's a way to send beeps from the shell:
+
+\begin{lstlisting}[style=Bash,caption={beep}]
+echo -ne '\007 \007'
+\end{lstlisting}
+
+\section{Main loop}
+
+(explained elsewhere)
+
+\section{Barcode reader}
+
+The barcode reader function must:
+
+\begin{enumerate}
+    \item Open the camera
+    \item Read a barcode
+    \item Close the camera
+    \item Transmit the barcode value to the \gls{plc}
+\end{enumerate}
+
+\importantbox{What do we do if NO barcode can be read? Is there a timeout? How long?}
 
 \section{Bootstrap module}
 

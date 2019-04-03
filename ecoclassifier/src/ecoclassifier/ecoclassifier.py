@@ -51,6 +51,10 @@ class Ecoclassifier(object):
         """Get command to execute from our PLC
         """
 
+    def read_barcode(self,):
+        """Try to read barcode.
+        """
+
     @tenacity.retry(
         wait=tenacity.wait_exponential(multiplier=1, min=2, max=600),
         after=tenacity.after_log(logger, logging.DEBUG),
