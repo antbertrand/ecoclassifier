@@ -66,7 +66,7 @@ class PLC(object):
         if isinstance(content, str):
             # This WILL raise Unicode errors, but remember we're only dealing with a PLC!
             content = bytes(content.encode("ascii"))
-        elif isinstance(content, bytearray):
+        elif isinstance(content, (bytearray, bytes)):
             pass
         else:
             raise NotImplementedError(

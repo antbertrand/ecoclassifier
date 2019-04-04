@@ -19,23 +19,27 @@ __maintainer__ = "Pierre-Julien Grizel"
 __email__ = "pjgrizel@numericube.com"
 __status__ = "Production"
 
+import os
+import time
 import logging
 import pypylon.pylon as py
 
 # import numpy as np
-#import cv2
+import cv2
 import datetime
+
+from . import settings
 
 logFormatter = "[%(asctime)s] p%(process)-8s %(levelname)-8s {%(pathname)s:%(lineno)d} - %(message)s"
 logging.basicConfig(format=logFormatter, level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 
-class Camera(object):
+class Camera:
     cameras = None
     cam_idx = 0
 
-    def __init__(self, authorized_fullnames=None, ip=None):
+    def __init__(self, ip=None, continuous=False):
         """Initialize a camera object, grab the first camera that matches the "authorized_fullnames"
         name.
         """
@@ -59,16 +63,49 @@ class Camera(object):
         for i, cam in enumerate(self.cameras):
             cam.Attach(self.tlFactory.CreateDevice(self.devices[i]))
             if ip and cam.GetDeviceInfo().GetIpAddress() == ip:
-                logger.debug("Using %s on %s", cam.GetDeviceInfo().GetFriendlyName(), cam.GetDeviceInfo().GetIpAddress())
+                logger.debug(
+                    "Using %s on %s",
+                    cam.GetDeviceInfo().GetFriendlyName(),
+                    cam.GetDeviceInfo().GetIpAddress(),
+                )
                 cam_idx = i
                 break
             else:
-                logger.debug("Ignoring %s on %s", cam.GetDeviceInfo().GetFriendlyName(), cam.GetDeviceInfo().GetIpAddress())
+                logger.debug(
+                    "Ignoring %s on %s",
+                    cam.GetDeviceInfo().GetFriendlyName(),
+                    cam.GetDeviceInfo().GetIpAddress(),
+                )
             print("Using device ", cam.GetDeviceInfo().GetModelName())
 
         # Let's start the fun
-        self.cameras[self.cam_idx].StartGrabbing(py.GrabStrategy_LatestImages)
+        if continuous:
+            self.cameras[self.cam_idx].StartGrabbingMax(100)
+        else:
+            # self.cameras[self.cam_idx].StartGrabbing(py.GrabStrategy_LatestImages)
+            self.cameras[self.cam_idx].StartGrabbing(py.GrabStrategy_LatestImageOnly)
         # self.cameras.PixelFormat = 'RGB8'
+
+    def continuousGrab(self,):
+        """Continuously grab images
+        """
+        camera = self.cameras[self.cam_idx]
+        while camera.IsGrabbing():
+            grabResult = camera.RetrieveResult(5000, py.TimeoutHandling_ThrowException)
+
+            # Image grabbed successfully?
+            if grabResult.GrabSucceeded():
+                # Access the image data.
+                # print("SizeX: ", grabResult.Width)
+                # print("SizeY: ", grabResult.Height)
+                img = grabResult.Array
+                grabResult.Release()
+                yield img
+                # print("Gray value of first pixel: ", img[0, 0])
+            else:
+                logger.debug(
+                    "%s / %s" % (grabResult.ErrorCode, grabResult.ErrorDescription)
+                )
 
     def loadConf(self):
         """Load configuration file (NodeMap.pfs)"""
@@ -133,13 +170,12 @@ class Camera(object):
         for cam in self.cameras:
             cam.BalanceWhiteAuto.SetValue("Continuous")
 
-        # For grab images
-
     def grabImage(self):
-        """Grab an image from the camera"""
+        """Grab an image from the camera, ONE-BY-ONE MODE"""
         # self.cameras.PixelFormat = 'BGR8'
 
         # MUST set, TOTAL number of images to grab per camera !
+        start_t = time.time()
         countOfImagesToGrab = 1
         # Grab c_countOfImagesToGrab from the cameras.
         for i in range(countOfImagesToGrab):
@@ -158,19 +194,41 @@ class Camera(object):
             # print("SizeX: ", grabResult.GetWidth())
             # print("SizeY: ", grabResult.GetHeight())
             img = grabResult.GetArray()
+            grabResult.Release()
             # print("Gray value of first pixel: ", img[0, 0])
             # img = cv2.cvtColor(img, cv2.COLOR_BAYER_RG2RGB)
 
+            # Output status and return image
+            end_t = time.time()
+            logger.debug("Image grabbing time: %.02f" % (end_t - start_t))
             return img
 
-    def saveImage(self, img, camera_id, path):
-        # make filename like yyyy-mm-dd-hh-mm-ss-nn-cam_id.png
-        time = str(datetime.datetime.today())
-        time = time.replace(" ", "-")
-        time = time.replace(":", "-")
-        time = time.replace(".", "-")
-        # convert image to good RGB pixel format
-        img = cv2.cvtColor(img, cv2.COLOR_BAYER_RG2RGB)
-        # Save image tyo specified path
-        cv2.imwrite("./" + time + "-CAM" + str(camera_id) + ".png", img)
+    def detach(self,):
+        """Detach camera
+        """
+        for cam in self.cameras:
+            det = cam.DetachDevice()
 
+    def saveImage(self, frame, camera_id="0", ratio=1):
+        # make filename like yyyy-mm-dd-hh-mm-ss-nn-cam_id.png
+        curtime = str(datetime.datetime.today())
+        curtime = curtime.replace(" ", "-")
+        curtime = curtime.replace(":", "-")
+        curtime = curtime.replace(".", "-")
+        path = os.path.join(
+            settings.GRAB_PATH, "" + curtime + "-CAM" + str(camera_id) + ".png"
+        )
+
+        # convert image to good RGB pixel format
+        if len(frame.shape) == 2:
+            img = cv2.cvtColor(frame, cv2.COLOR_BAYER_RG2RGB)
+        else:
+            img = frame
+
+        # Adapt ratio if necessary
+        if ratio != 1:
+            img = cv2.resize(img, None, fx=ratio, fy=ratio)
+
+        # Save image tyo specified path
+        logger.debug("Saving %s", path)
+        cv2.imwrite(path, img)
