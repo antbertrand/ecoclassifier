@@ -25,6 +25,7 @@ import logging
 
 import sentry_sdk
 import tenacity
+import cv2
 
 # pylint: disable=F403
 from . import settings
@@ -33,7 +34,7 @@ from .camera import Camera
 from .barcode import BarcodeReader
 
 # Configure Sentry
-sentry_sdk.init(os.environ["SENTRY_URL"])
+sentry_sdk.init(os.environ.get("SENTRY_URL", "https://4639b652ded448d5a638aa6664f8265e@sentry.io/1429568"))
 
 # Configure logging
 # logFormatter = "%(asctime)s %(name)-12s %(message)s"
@@ -77,9 +78,15 @@ class Ecoclassifier(object):
         barcode = BarcodeReader()
         while self.get_plc_command() in (settings.PLC_COMMAND_READ_BARCODE, settings.PLC_COMMAND_STOP):
             frame = camera.grabImage()
-            barcode = barcode.read_barcode(frame)
-            if barcode:
-                return barcode
+            camera.saveImage(frame, "0")
+
+            # Convert to a suitable format
+            #import pdb;pdb.set_trace()
+            image = cv2.cvtColor(frame, cv2.COLOR_BAYER_RG2RGB)
+            detected = barcode.detect(cv2.resize(image, None, fx=0.5, fy=0.5))
+            if detected:
+                self.client.write(settings.PLC_TABLE_BARCODE_CONTENT_WRITE,
+                        settings.PLC_TABLE_BARCODE_CONTENT_INDEX, detected)
             time.sleep(settings.BARCODE_POOLING_WAIT_SECONDS)
 
     @tenacity.retry(

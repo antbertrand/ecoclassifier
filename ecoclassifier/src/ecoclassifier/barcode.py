@@ -19,6 +19,7 @@ __maintainer__ = "Pierre-Julien Grizel"
 __email__ = "pjgrizel@numericube.com"
 __status__ = "Production"
 
+import time
 import logging
 
 from pyzbar import pyzbar
@@ -35,7 +36,7 @@ class BarcodeReader(object):
 
     barcode_types = ()
 
-    def __init__(self, barcode_types=()):
+    def __init__(self, barcode_types=(pyzbar.ZBarSymbol.EAN13, )):
         """Initial configuration
         """
         self.barcode_types = barcode_types
@@ -49,8 +50,10 @@ class BarcodeReader(object):
         # image = cv2.imread(args["image"])
 
         # find the barcodes in the image and decode each of the barcodes
-        import pdb;pdb.set_trace()
-        barcodes = pyzbar.decode(image)
+        logger.debug("Trying to detect barcode (image size=%s)", image.shape)
+        start = time.time()
+        barcodes = pyzbar.decode(image, self.barcode_types)
+        end = time.time()
 
         # loop over the detected barcodes
         for barcode in barcodes:
@@ -70,9 +73,12 @@ class BarcodeReader(object):
             # 	0.5, (0, 0, 255), 2)
 
             # print the barcode type and data to the terminal
-            logger.debug("Found %s barcode: %s", barcode_type, barcode_data)
+            logger.debug("Found %s barcode: %s in %.2f seconds", barcode_type, barcode_data, (end-start))
+            if not barcode_type in self.barcode_types:
+                continue
 
             # Return it
+            print("\a")
             return barcode_data
 
         # No barcode found? Return None

@@ -23,7 +23,7 @@ import logging
 import pypylon.pylon as py
 
 # import numpy as np
-#import cv2
+import cv2
 import datetime
 
 logFormatter = "[%(asctime)s] p%(process)-8s %(levelname)-8s {%(pathname)s:%(lineno)d} - %(message)s"
@@ -163,14 +163,14 @@ class Camera(object):
 
             return img
 
-    def saveImage(self, img, camera_id, path):
+    def saveImage(self, frame, camera_id):
         # make filename like yyyy-mm-dd-hh-mm-ss-nn-cam_id.png
         time = str(datetime.datetime.today())
         time = time.replace(" ", "-")
         time = time.replace(":", "-")
         time = time.replace(".", "-")
         # convert image to good RGB pixel format
-        img = cv2.cvtColor(img, cv2.COLOR_BAYER_RG2RGB)
+        img = cv2.cvtColor(frame, cv2.COLOR_BAYER_RG2RGB)
         # Save image tyo specified path
         cv2.imwrite("./" + time + "-CAM" + str(camera_id) + ".png", img)
 
