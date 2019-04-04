@@ -31,7 +31,7 @@ logging.basicConfig(format=logFormatter, level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 
-class Camera(object):
+class Camera:
     cameras = None
     cam_idx = 0
 
@@ -158,19 +158,37 @@ class Camera(object):
             # print("SizeX: ", grabResult.GetWidth())
             # print("SizeY: ", grabResult.GetHeight())
             img = grabResult.GetArray()
+            grabResult.Release()
             # print("Gray value of first pixel: ", img[0, 0])
             # img = cv2.cvtColor(img, cv2.COLOR_BAYER_RG2RGB)
 
             return img
 
-    def saveImage(self, frame, camera_id):
+    def detach(self,):
+        """Detach camera
+        """
+        for cam in self.cameras:
+            det = cam.DetachDevice()
+
+    def saveImage(self, frame, camera_id="0", ratio=1):
         # make filename like yyyy-mm-dd-hh-mm-ss-nn-cam_id.png
         time = str(datetime.datetime.today())
         time = time.replace(" ", "-")
         time = time.replace(":", "-")
         time = time.replace(".", "-")
+
         # convert image to good RGB pixel format
-        img = cv2.cvtColor(frame, cv2.COLOR_BAYER_RG2RGB)
+        if len(frame.shape) == 2:
+            img = cv2.cvtColor(frame, cv2.COLOR_BAYER_RG2RGB)
+        else:
+            img = frame
+
+        # Adapt ratio if necessary
+        if ratio != 1:
+            img = cv2.resize(img, None, fx=ratio, fy=ratio)
+
         # Save image tyo specified path
-        cv2.imwrite("./" + time + "-CAM" + str(camera_id) + ".png", img)
+        path = "./" + time + "-CAM" + str(camera_id) + ".png"
+        logger.debug("Saving %s", path)
+        cv2.imwrite(path, img)
 

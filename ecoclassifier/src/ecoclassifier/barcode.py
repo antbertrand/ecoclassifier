@@ -74,11 +74,10 @@ class BarcodeReader(object):
 
             # print the barcode type and data to the terminal
             logger.debug("Found %s barcode: %s in %.2f seconds", barcode_type, barcode_data, (end-start))
-            if not barcode_type in self.barcode_types:
+            if not barcode_type in [ b.name for b in self.barcode_types ]:
                 continue
 
             # Return it
-            print("\a")
             return barcode_data
 
         # No barcode found? Return None

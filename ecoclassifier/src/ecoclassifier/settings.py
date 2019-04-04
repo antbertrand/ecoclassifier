@@ -39,6 +39,8 @@ PLC_TABLE_HEARTBEAT_INDEX = 0
 PLC_TABLE_HEARTBEAT_LENGTH = 2
 PLC_TABLE_COMMAND_READ = 43
 PLC_TABLE_COMMAND_INDEX = 2
+PLC_TABLE_ANSWER_WRITE = 42
+PLC_TABLE_ANSWER_INDEX = 2
 PLC_TABLE_BARCODE_STATUS_WRITE = 42
 PLC_TABLE_BARCODE_STATUS_INDEX = None
 PLC_TABLE_BARCODE_CONTENT_WRITE = 42
@@ -53,6 +55,21 @@ PLC_COMMAND_READ_BARCODE = b"\x00\x01"  # Read barcode
 PLC_COMMAND_LEARN_BARCODE = 11
 PLC_COMMAND_READ_MATERIAL = 2
 PLC_COMMAND_LEARN_MATERIAL = 22
+
+# Command answers
+PLC_ANSWER_MAIN_LOOP = b"\x00\x00"
+PLC_ANSWER_BARCODE_START = b"\x00\x0a"
+PLC_ANSWER_BARCODE_DONE = b"\x00\x0b"
+#0 arrêté
+#11 - lecture code barre lancée
+#12 – code barre lu
+#21 - [NO] apprentissages Code barre lancés
+#22 - [NO] apprentissages Code barre terminés
+#31 - lecture lancée
+#32 - code matière lu
+#33 – pas de code matière
+#41 – apprentissages lancés
+#42 – apprentissages terminés
 
 # Cameras serial numbers
 # HZ is for Horizontal (front-facing) cameras.

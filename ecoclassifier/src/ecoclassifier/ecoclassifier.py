@@ -32,6 +32,7 @@ from . import settings
 from . import plc
 from .camera import Camera
 from .barcode import BarcodeReader
+from . import bcolors
 
 # Configure Sentry
 sentry_sdk.init(os.environ.get("SENTRY_URL", "https://4639b652ded448d5a638aa6664f8265e@sentry.io/1429568"))
@@ -69,25 +70,44 @@ class Ecoclassifier(object):
             settings.PLC_TABLE_COMMAND_READ, settings.PLC_TABLE_COMMAND_INDEX
         )
 
+
+    def send_plc_answer(self, status):
+        """Send answer to the PLC"""
+        self.client.write(
+            settings.PLC_TABLE_ANSWER_WRITE,
+            settings.PLC_TABLE_ANSWER_INDEX,
+            status
+        )
+
     def read_barcode(self,):
         """Try to read barcode using the camera module.
         """
         # Open camera, grab images and analyse them on-the-fly
         # The PLC will change command status to indicate that barcode reading time is over
         camera = Camera(ip=settings.CAMERA_VT_IP)
-        barcode = BarcodeReader()
-        while self.get_plc_command() in (settings.PLC_COMMAND_READ_BARCODE, settings.PLC_COMMAND_STOP):
-            frame = camera.grabImage()
-            camera.saveImage(frame, "0")
+        try:
+            self.send_plc_answer(settings.PLC_ANSWER_BARCODE_START)
+            barcode = BarcodeReader()
+            logger.info("Starting barcode reader")
+            while self.get_plc_command() in (settings.PLC_COMMAND_READ_BARCODE, settings.PLC_COMMAND_STOP):
+                frame = camera.grabImage()
 
-            # Convert to a suitable format
-            #import pdb;pdb.set_trace()
-            image = cv2.cvtColor(frame, cv2.COLOR_BAYER_RG2RGB)
-            detected = barcode.detect(cv2.resize(image, None, fx=0.5, fy=0.5))
-            if detected:
-                self.client.write(settings.PLC_TABLE_BARCODE_CONTENT_WRITE,
+                # Convert to a suitable format
+                camera.saveImage(frame, ratio=0.5)
+                image = cv2.cvtColor(frame, cv2.COLOR_BAYER_RG2RGB)
+                smaller = cv2.resize(image, None, fx=0.5, fy=0.5)
+
+                #detected = barcode.detect(cv2.resize(image, None, fx=0.5, fy=0.5))
+                detected = barcode.detect(smaller)
+                if detected:
+                    logger.info("{}EAN13: {}{}".format(bcolors.SUCCESS, detected, bcolors.NONE))
+                    self.client.write(settings.PLC_TABLE_BARCODE_CONTENT_WRITE,
                         settings.PLC_TABLE_BARCODE_CONTENT_INDEX, detected)
-            time.sleep(settings.BARCODE_POOLING_WAIT_SECONDS)
+                    self.send_plc_answer(settings.PLC_ANSWER_BARCODE_DONE)
+                time.sleep(settings.BARCODE_POOLING_WAIT_SECONDS)
+            
+        finally:
+            camera.detach()
 
     @tenacity.retry(
         wait=tenacity.wait_exponential(multiplier=1, min=2, max=600),
@@ -103,6 +123,7 @@ class Ecoclassifier(object):
                 # Heartbeat
                 logger.debug("Entering loop!")
                 self.heartbeat()
+                self.send_plc_answer(settings.PLC_ANSWER_MAIN_LOOP)
 
                 # Depending on the PLC status, decide what to do
                 command = self.get_plc_command()
