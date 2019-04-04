@@ -25,6 +25,7 @@ __status__ = "Production"
 
 # Loop configuration
 MAIN_LOOP_POOLING_WAIT_SECONDS = 1
+BARCODE_POOLING_WAIT_SECONDS = 0.5
 
 # PLC configuration
 PLC_ADDRESS = "192.168.0.1"
@@ -46,7 +47,7 @@ PLC_TABLE_DEFECT = 8
 
 # Command index
 PLC_COMMAND_STOP = b"\x00\x00"  # Nothing to do
-PLC_COMMAND_READ_BARCODE = 1  # Read barcode
+PLC_COMMAND_READ_BARCODE = b"\x00\x01"  # Read barcode
 PLC_COMMAND_LEARN_BARCODE = 11
 PLC_COMMAND_READ_MATERIAL = 2
 PLC_COMMAND_LEARN_MATERIAL = 22
@@ -55,5 +56,7 @@ PLC_COMMAND_LEARN_MATERIAL = 22
 # HZ is for Horizontal (front-facing) cameras.
 # VT is for Vertical (above the object) cameras.
 CAMERA_HZ_SERIALS = ()
-
 CAMERA_VT_SERIALS = ()
+
+CAMERA_VT_IP = "192.168.0.31"
+CAMERA_HZ_IP = "192.168.0.32"

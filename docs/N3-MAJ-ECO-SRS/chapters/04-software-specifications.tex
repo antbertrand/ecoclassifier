@@ -60,55 +60,8 @@ EAN length in the \gls{plc} is 32~characters.
 
 \section{Bootstrap module}
 
-\subsection{Dependencies}
 
-The OS is Linux (headless), Debian or Ubuntu.
-
-\todo{Specify OS needs here}
-
-We also need:
-
-\begin{itemize}
-    \item Docker, >= 18.0.9
-    \item Docker-compose, >= 1.23.2
-\end{itemize}
-
-
-\section{Container: \texttt{ecoclassifier-main}}
-
-\subsection{Container role}
-
-This is the container holding the main camera program.
-
-It has the main loop.
-
-\subsection{Dependencies}
-
-\notebox{If we have performance issues and/or problems to keep up with the \gls{heartbeat},
-we could add another container to handle the heartbeat specifically.}
-
-Here's the list of software that must be configured on the container:
-
-\begin{itemize}
-    \item Python >= 3.6
-    \item OpenCV
-    \item Snap7 software (for \gls{plc} communication)
-    \item Basler software (bundled with our Dockerfile!)
-    \item Semi-async mode (main loop for image capture, async mode for the upload part)
-    \item Keras
-    \item Usual requirements.txt additional packages
-\end{itemize}
-
-Plus we have to enable the following service/packages/libraries:
-
-\begin{itemize}
-    \item \texttt{Sentry} (see \url{https://sentry.io}) to report exceptions
-    \item \texttt{timeout-decorator} (see \url{https://github.com/pnpnpn/timeout-decorator})
-    \item \texttt{Tenacity} (see \url{https://github.com/jd/tenacity})
-\end{itemize}
-
-
-\subsection{Main loop}
+\section{Main loop}
 
 Main loop's purpose is to open necessary connexions, listen to the \gls{plc} and decide what to do depending on what's available here.
 
@@ -121,7 +74,7 @@ Here's the list of tasks this section must provide:
     \item Wait for a little while and go back to step 1
 \end{enumerate}
 
-
+\section{Hearbeat}
 
 
 \section{Container: \texttt{ecoclassifier-sync}}

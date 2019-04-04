@@ -116,7 +116,7 @@ Transfers with \gls{plc} must be done in one place only.
 
 We use a singleton class, \texttt{PLC}, which completely abstracts this.
 
-\infobox{We MAY have problems with syncing with the PLC if several connexions are open at the same time.
+\notebox{We MAY have problems with syncing with the PLC if several connexions are open at the same time.
 In this case we'll have to put a lock to make sure it doesn't open several connexions at once.}
 
 \subsection{Cameras management}
@@ -199,6 +199,8 @@ a little time.
 
 We use \url{https://github.com/NaturalHistoryMuseum/pyzbar/}.
 
+For information about how to optimize barcode reading in potentially difficult conditions, see \url{http://zbar.sourceforge.net/iphone/sdkdoc/optimizing.html}
+
 
 \section{Maintenance, diagnosis}
 
@@ -221,4 +223,59 @@ For Docker's policies, see \url{https://docs.docker.com/config/containers/start-
 
 Remote access can be done via Dinatec's VPN. Then the machine can be accessed via \texttt{ssh} and only \texttt{ssh}.
 
-\infobox{Dinatec's software to access the VPN is called \texttt{Sinema RC}}
+\notebox{Dinatec's software to access the VPN is called \texttt{Sinema RC}}
+
+
+\section{Bootstrap module}
+
+\subsection{Dependencies}
+
+The OS is Linux (headless), Debian or Ubuntu.
+
+\todo{Specify OS needs here}
+
+We also need:
+
+\begin{itemize}
+    \item Docker, >= 18.0.9
+    \item Docker-compose, >= 1.23.2
+\end{itemize}
+
+
+
+\section{Containers}
+
+
+\subsection{Container: \texttt{ecoclassifier-main}}
+
+This is the container holding the main camera program.
+
+It has the main loop.
+
+
+
+\section{Dependencies}
+
+\notebox{If we have performance issues and/or problems to keep up with the \gls{heartbeat},
+we could add another container to handle the heartbeat specifically.}
+
+Here's the list of software that must be configured on the container:
+
+\begin{itemize}
+    \item Python >= 3.6
+    \item OpenCV
+    \item Snap7 software (for \gls{plc} communication)
+    \item Basler software (bundled with our Dockerfile!)
+    \item Semi-async mode (main loop for image capture, async mode for the upload part)
+    \item Keras
+    \item Usual requirements.txt additional packages
+    \item Pyzbar
+\end{itemize}
+
+Plus we have to enable the following service/packages/libraries:
+
+\begin{itemize}
+    \item \texttt{Sentry} (see \url{https://sentry.io}) to report exceptions
+    \item \texttt{timeout-decorator} (see \url{https://github.com/pnpnpn/timeout-decorator})
+    \item \texttt{Tenacity} (see \url{https://github.com/jd/tenacity})
+\end{itemize}

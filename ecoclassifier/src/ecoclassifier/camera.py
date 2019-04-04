@@ -32,7 +32,7 @@ logger = logging.get_logger(__name__)
 
 
 class Camera(object):
-    def __init__(self, authorized_fullnames):
+    def __init__(self, authorized_fullnames=None, ip=None):
         """Initialize a camera object, grab the first camera that matches the "authorized_fullnames"
         name.
         """

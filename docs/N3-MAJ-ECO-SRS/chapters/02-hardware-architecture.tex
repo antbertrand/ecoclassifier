@@ -22,3 +22,13 @@ The eco-classifier project has the following hardware parts:
 Nothing more.
 
 \todo{Describe the cameras, specifications, etc}
+
+\section{Networking}
+
+Networking is critical in our application. Several issues must be considered.
+
+\begin{itemize}
+    \item Use a 1Gb switch/router, or, even better, dedicated Ethernet ports
+    \item Use Jumbo Frames (see \url{https://linuxconfig.org/how-to-enable-jumbo-frames-in-linux})
+    \item 9500~packet delay seems to be the accurate value (see )
+\end{itemize}

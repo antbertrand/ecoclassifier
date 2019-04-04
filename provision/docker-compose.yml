@@ -10,6 +10,8 @@ services:
         command:
             # - /bin/sleep 2147483647d
             - ecoclassifier
+        network_mode: host
+
 
 #   # Image grabber
 #   basler-grabber:

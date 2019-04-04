@@ -19,13 +19,32 @@ __maintainer__ = "Pierre-Julien Grizel"
 __email__ = "pjgrizel@numericube.com"
 __status__ = "Production"
 
+import logging
+
 from pyzbar import pyzbar
+
+# Logging configuration
+logFormatter = "[%(asctime)s] p%(process)-8s %(levelname)-8s {%(pathname)s:%(lineno)d} - %(message)s"
+logging.basicConfig(format=logFormatter, level=logging.DEBUG)
+logger = logging.getLogger(__name__)
 
 
 class BarcodeReader(object):
-    while True:
+    """Generic barcode reader
+    """
+
+    barcode_types = ()
+
+    def __init__(self, barcode_types=()):
+        """Initial configuration
+        """
+        self.barcode_types = barcode_types
+
+    def detect(self, image):
+        """Detect a barcode on an image read from the camera.
+        """
         # grab Image from camera
-        image = cam.grabImage()
+        # image = cam.grabImage()
         # load the input image
         # image = cv2.imread(args["image"])
 
@@ -41,14 +60,19 @@ class BarcodeReader(object):
 
             # the barcode data is a bytes object so if we want to draw it on
             # our output image we need to convert it to a string first
-            barcodeData = barcode.data.decode("utf-8")
-            barcodeType = barcode.type
+            barcode_data = barcode.data.decode("utf-8")
+            barcode_type = barcode.type
 
             # draw the barcode data and barcode type on the image
-            text = "{} ({})".format(barcodeData, barcodeType)
+            # text = "{} ({})".type(barcodeData, barcodeType)
             # cv2.putText(image, text, (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX,
             # 	0.5, (0, 0, 255), 2)
 
             # print the barcode type and data to the terminal
-            print("[INFO] Found {} barcode: {}".format(barcodeType, barcodeData))
-        time.sleep(0.05)
+            logger.debug("Found %s barcode: %s", barcode_type, barcode_data)
+
+            # Return it
+            return barcode_data
+
+        # No barcode found? Return None
+        return None

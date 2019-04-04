@@ -29,6 +29,8 @@ import tenacity
 # pylint: disable=F403
 from . import settings
 from . import plc
+from .camera import Camera
+from .barcode import BarcodeReader
 
 # Configure Sentry
 sentry_sdk.init(os.environ["SENTRY_URL"])
@@ -67,8 +69,18 @@ class Ecoclassifier(object):
         )
 
     def read_barcode(self,):
-        """Try to read barcode.
+        """Try to read barcode using the camera module.
         """
+        # Open camera, grab images and analyse them on-the-fly
+        # The PLC will change command status to indicate that barcode reading time is over
+        camera = Camera(ip=settings.CAMERA_VT_IP)
+        barcode = BarcodeReader()
+        while self.get_plc_command() in (settings.PLC_COMMAND_READ_BARCODE,):
+            frame = camera.grabImage()
+            barcode = barcode.read_barcode(frame)
+            if barcode:
+                return barcode
+            time.sleep(settings.BARCODE_POOLING_WAIT_SECONDS)
 
     @tenacity.retry(
         wait=tenacity.wait_exponential(multiplier=1, min=2, max=600),
@@ -89,8 +101,8 @@ class Ecoclassifier(object):
                 command = self.get_plc_command()
                 if command == settings.PLC_COMMAND_STOP:
                     time.sleep(settings.MAIN_LOOP_POOLING_WAIT_SECONDS)
-                elif command == 1:
-                    continue
+                elif command == settings.PLC_COMMAND_READ_BARCODE:
+                    self.read_barcode()
                 else:
                     raise NotImplementedError("Invalid command: {}".format(command))
 
