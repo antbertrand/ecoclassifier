@@ -1,4 +1,3 @@
-
 """See https://stackoverflow.com/questions/287871/print-in-terminal-with-colors"""
 
 # Symbolic
@@ -19,4 +18,3 @@ NONE = "\033[0m"
 INFO = "\033[96m"  # Context-specific information / heads up
 ECHO = "\033[94m"  # Echo a shell command
 FAIL = "\033[91m"
-

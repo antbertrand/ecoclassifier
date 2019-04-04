@@ -59,11 +59,19 @@ class Camera:
         for i, cam in enumerate(self.cameras):
             cam.Attach(self.tlFactory.CreateDevice(self.devices[i]))
             if ip and cam.GetDeviceInfo().GetIpAddress() == ip:
-                logger.debug("Using %s on %s", cam.GetDeviceInfo().GetFriendlyName(), cam.GetDeviceInfo().GetIpAddress())
+                logger.debug(
+                    "Using %s on %s",
+                    cam.GetDeviceInfo().GetFriendlyName(),
+                    cam.GetDeviceInfo().GetIpAddress(),
+                )
                 cam_idx = i
                 break
             else:
-                logger.debug("Ignoring %s on %s", cam.GetDeviceInfo().GetFriendlyName(), cam.GetDeviceInfo().GetIpAddress())
+                logger.debug(
+                    "Ignoring %s on %s",
+                    cam.GetDeviceInfo().GetFriendlyName(),
+                    cam.GetDeviceInfo().GetIpAddress(),
+                )
             print("Using device ", cam.GetDeviceInfo().GetModelName())
 
         # Let's start the fun
@@ -191,4 +199,3 @@ class Camera:
         path = "./" + time + "-CAM" + str(camera_id) + ".png"
         logger.debug("Saving %s", path)
         cv2.imwrite(path, img)
-

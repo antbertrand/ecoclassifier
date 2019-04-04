@@ -36,7 +36,7 @@ class BarcodeReader(object):
 
     barcode_types = ()
 
-    def __init__(self, barcode_types=(pyzbar.ZBarSymbol.EAN13, )):
+    def __init__(self, barcode_types=(pyzbar.ZBarSymbol.EAN13,)):
         """Initial configuration
         """
         self.barcode_types = barcode_types
@@ -73,8 +73,13 @@ class BarcodeReader(object):
             # 	0.5, (0, 0, 255), 2)
 
             # print the barcode type and data to the terminal
-            logger.debug("Found %s barcode: %s in %.2f seconds", barcode_type, barcode_data, (end-start))
-            if not barcode_type in [ b.name for b in self.barcode_types ]:
+            logger.debug(
+                "Found %s barcode: %s in %.2f seconds",
+                barcode_type,
+                barcode_data,
+                (end - start),
+            )
+            if not barcode_type in [b.name for b in self.barcode_types]:
                 continue
 
             # Return it
