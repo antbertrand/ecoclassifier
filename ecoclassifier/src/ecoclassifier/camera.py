@@ -82,7 +82,8 @@ class Camera:
         if continuous:
             self.cameras[self.cam_idx].StartGrabbingMax(100)
         else:
-            self.cameras[self.cam_idx].StartGrabbing(py.GrabStrategy_LatestImages)
+            # self.cameras[self.cam_idx].StartGrabbing(py.GrabStrategy_LatestImages)
+            self.cameras[self.cam_idx].StartGrabbing(py.GrabStrategy_LatestImageOnly)
         # self.cameras.PixelFormat = 'RGB8'
 
     def continuousGrab(self,):
@@ -95,14 +96,16 @@ class Camera:
             # Image grabbed successfully?
             if grabResult.GrabSucceeded():
                 # Access the image data.
-                #print("SizeX: ", grabResult.Width)
-                #print("SizeY: ", grabResult.Height)
+                # print("SizeX: ", grabResult.Width)
+                # print("SizeY: ", grabResult.Height)
                 img = grabResult.Array
                 grabResult.Release()
                 yield img
-                #print("Gray value of first pixel: ", img[0, 0])
+                # print("Gray value of first pixel: ", img[0, 0])
             else:
-                logger.debug("%s / %s" % (grabResult.ErrorCode, grabResult.ErrorDescription))
+                logger.debug(
+                    "%s / %s" % (grabResult.ErrorCode, grabResult.ErrorDescription)
+                )
 
     def loadConf(self):
         """Load configuration file (NodeMap.pfs)"""
@@ -167,7 +170,6 @@ class Camera:
         for cam in self.cameras:
             cam.BalanceWhiteAuto.SetValue("Continuous")
 
-
     def grabImage(self):
         """Grab an image from the camera, ONE-BY-ONE MODE"""
         # self.cameras.PixelFormat = 'BGR8'
@@ -209,10 +211,13 @@ class Camera:
 
     def saveImage(self, frame, camera_id="0", ratio=1):
         # make filename like yyyy-mm-dd-hh-mm-ss-nn-cam_id.png
-        time = str(datetime.datetime.today())
-        time = time.replace(" ", "-")
-        time = time.replace(":", "-")
-        time = time.replace(".", "-")
+        curtime = str(datetime.datetime.today())
+        curtime = curtime.replace(" ", "-")
+        curtime = curtime.replace(":", "-")
+        curtime = curtime.replace(".", "-")
+        path = os.path.join(
+            settings.GRAB_PATH, "" + curtime + "-CAM" + str(camera_id) + ".png"
+        )
 
         # convert image to good RGB pixel format
         if len(frame.shape) == 2:
@@ -225,6 +230,5 @@ class Camera:
             img = cv2.resize(img, None, fx=ratio, fy=ratio)
 
         # Save image tyo specified path
-        path = os.path.join(settings.GRAB_PATH, "" + time + "-CAM" + str(camera_id) + ".png")
         logger.debug("Saving %s", path)
         cv2.imwrite(path, img)

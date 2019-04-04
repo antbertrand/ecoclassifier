@@ -26,6 +26,7 @@ import logging
 import sentry_sdk
 import tenacity
 import cv2
+import imutils
 
 # pylint: disable=F403
 from . import settings
@@ -101,8 +102,8 @@ class Ecoclassifier(object):
         # Open camera, grab images and analyse them on-the-fly
         # The PLC will change command status to indicate that barcode reading time is over
         start_t = time.time()
-        camera = Camera(ip=settings.CAMERA_VT_IP, continuous=True)
-        grabber = camera.continuousGrab()
+        camera = Camera(ip=settings.CAMERA_VT_IP, continuous=False)
+        #        grabber = camera.continuousGrab()
         try:
             self.send_plc_answer(start_answer)
             barcode = BarcodeReader()
@@ -114,27 +115,37 @@ class Ecoclassifier(object):
                 logger.debug("")
                 start_frame_t = time.time()
                 logger.debug("")
-                #frame = camera.grabImage()
-                frame = next(grabber)
+                frame = camera.grabImage()
+                # frame = next(grabber)
                 logger.debug("")
 
                 # Convert to a suitable format
-                camera.saveImage(frame, ratio=0.5)
+                #                camera.saveImage(frame, ratio=0.5)
                 logger.debug("")
                 image = cv2.cvtColor(frame, cv2.COLOR_BAYER_RG2RGB)
                 logger.debug("")
-                smaller = cv2.resize(image, None, fx=0.5, fy=0.5)
+#                smaller = cv2.resize(image, None, fx=0.5, fy=0.5)
                 logger.debug("")
 
                 # Launch barcode detection. If we *do* have something, write it back to the PLC
                 logger.debug("")
-                detected = barcode.detect(smaller)
+                detected = barcode.detect(image)
                 logger.debug("")
+                if not detected:
+                    image = imutils.rotate(image, 45)
+                    detected = barcode.detect(image)
                 if detected:
                     logger.debug("")
                     end_t = time.time()
                     logger.info(
-                        "%sEAN13: %s%s Reading took %.2f sec (%.2f in this frame)" % (bcolors.SUCCESS, detected, bcolors.NONE, end_t - start_t, end_t - start_frame_t)
+                        "%sBARCODE: %s%s Reading took %.2f sec (%.2f in this frame)"
+                        % (
+                            bcolors.SUCCESS,
+                            detected,
+                            bcolors.NONE,
+                            end_t - start_t,
+                            end_t - start_frame_t,
+                        )
                     )
                     self.client.write(
                         settings.PLC_TABLE_BARCODE_CONTENT_WRITE,

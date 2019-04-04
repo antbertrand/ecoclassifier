@@ -3,6 +3,7 @@ python-snap7==0.10
 https://github.com/basler/pypylon/releases/download/1.4.0/pypylon-1.4.0-cp36-cp36m-linux_x86_64.whl
 pyzbar
 numpy
+imutils
 
 # Useful packages
 timeout-decorator==0.4.1
@@ -12,3 +13,6 @@ sentry-sdk==0.7.9
 # Testing
 pytest
 pytest-mock
+
+# Azure stuff
+azure
