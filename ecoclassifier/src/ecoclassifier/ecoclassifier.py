@@ -75,7 +75,7 @@ class Ecoclassifier(object):
         # The PLC will change command status to indicate that barcode reading time is over
         camera = Camera(ip=settings.CAMERA_VT_IP)
         barcode = BarcodeReader()
-        while self.get_plc_command() in (settings.PLC_COMMAND_READ_BARCODE,):
+        while self.get_plc_command() in (settings.PLC_COMMAND_READ_BARCODE, settings.PLC_COMMAND_STOP):
             frame = camera.grabImage()
             barcode = barcode.read_barcode(frame)
             if barcode:
@@ -100,6 +100,7 @@ class Ecoclassifier(object):
                 # Depending on the PLC status, decide what to do
                 command = self.get_plc_command()
                 if command == settings.PLC_COMMAND_STOP:
+                    self.read_barcode()
                     time.sleep(settings.MAIN_LOOP_POOLING_WAIT_SECONDS)
                 elif command == settings.PLC_COMMAND_READ_BARCODE:
                     self.read_barcode()

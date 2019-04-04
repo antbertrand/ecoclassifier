@@ -23,15 +23,18 @@ import logging
 import pypylon.pylon as py
 
 # import numpy as np
-import cv2
+#import cv2
 import datetime
 
 logFormatter = "[%(asctime)s] p%(process)-8s %(levelname)-8s {%(pathname)s:%(lineno)d} - %(message)s"
 logging.basicConfig(format=logFormatter, level=logging.DEBUG)
-logger = logging.get_logger(__name__)
+logger = logging.getLogger(__name__)
 
 
 class Camera(object):
+    cameras = None
+    cam_idx = 0
+
     def __init__(self, authorized_fullnames=None, ip=None):
         """Initialize a camera object, grab the first camera that matches the "authorized_fullnames"
         name.
@@ -45,21 +48,26 @@ class Camera(object):
         if len(self.devices) == 0:
             raise pylon.RUNTIME_EXCEPTION("No camera present.")
         else:
-            print(len(self.devices), " cameras trouvées")
+            logger.debug("%d cameras found.", len(self.devices))
 
         # Create an array of instant cameras for the found devices and avoid exceeding a maximum number of devices.
         self.cameras = py.InstantCameraArray(
             min(len(self.devices), self.maxCamerasToUse)
         )
 
-        self.l = self.cameras.GetSize()
         # Create and attach all Pylon Devices.
         for i, cam in enumerate(self.cameras):
             cam.Attach(self.tlFactory.CreateDevice(self.devices[i]))
-
+            if ip and cam.GetDeviceInfo().GetIpAddress() == ip:
+                logger.debug("Using %s on %s", cam.GetDeviceInfo().GetFriendlyName(), cam.GetDeviceInfo().GetIpAddress())
+                cam_idx = i
+                break
+            else:
+                logger.debug("Ignoring %s on %s", cam.GetDeviceInfo().GetFriendlyName(), cam.GetDeviceInfo().GetIpAddress())
             print("Using device ", cam.GetDeviceInfo().GetModelName())
-        self.cameras.StartGrabbing(py.GrabStrategy_LatestImages)
 
+        # Let's start the fun
+        self.cameras[self.cam_idx].StartGrabbing(py.GrabStrategy_LatestImages)
         # self.cameras.PixelFormat = 'RGB8'
 
     def loadConf(self):
@@ -135,31 +143,25 @@ class Camera(object):
         countOfImagesToGrab = 1
         # Grab c_countOfImagesToGrab from the cameras.
         for i in range(countOfImagesToGrab):
-            if not self.cameras.IsGrabbing():
+            if not self.cameras[self.cam_idx].IsGrabbing():
+                logger.debug("Camera is not in grabbing mode")
                 break
-            for cam in self.cameras:
+            cam = self.cameras[self.cam_idx]
+            grabResult = cam.RetrieveResult(5000, py.TimeoutHandling_ThrowException)
+            cameraContextValue = grabResult.GetCameraContext()
 
-                grabResult = cam.RetrieveResult(5000, py.TimeoutHandling_ThrowException)
+            # Print the index and the model name of the camera.
+            # print("Camera ", cameraContextValue, ": ", self.cameras[cameraContextValue].GetDeviceInfo().GetModelName())
 
-                # When the cameras in the array are created the camera context value
-                # is set to the index of the camera in the array.
-                # The camera context is a user settable value.
-                # This value is attached to each grab result and can be used
-                # to determine the camera that produced the grab result.
-                cameraContextValue = grabResult.GetCameraContext()
+            # Now, the image data can be processed.
+            # print("GrabSucceeded: ", grabResult.GrabSucceeded())
+            # print("SizeX: ", grabResult.GetWidth())
+            # print("SizeY: ", grabResult.GetHeight())
+            img = grabResult.GetArray()
+            # print("Gray value of first pixel: ", img[0, 0])
+            # img = cv2.cvtColor(img, cv2.COLOR_BAYER_RG2RGB)
 
-                # Print the index and the model name of the camera.
-                # print("Camera ", cameraContextValue, ": ", self.cameras[cameraContextValue].GetDeviceInfo().GetModelName())
-
-                # Now, the image data can be processed.
-                # print("GrabSucceeded: ", grabResult.GrabSucceeded())
-                # print("SizeX: ", grabResult.GetWidth())
-                # print("SizeY: ", grabResult.GetHeight())
-                img = grabResult.GetArray()
-                # print("Gray value of first pixel: ", img[0, 0])
-                # img = cv2.cvtColor(img, cv2.COLOR_BAYER_RG2RGB)
-
-                return img
+            return img
 
     def saveImage(self, img, camera_id, path):
         # make filename like yyyy-mm-dd-hh-mm-ss-nn-cam_id.png
@@ -171,3 +173,4 @@ class Camera(object):
         img = cv2.cvtColor(img, cv2.COLOR_BAYER_RG2RGB)
         # Save image tyo specified path
         cv2.imwrite("./" + time + "-CAM" + str(camera_id) + ".png", img)
+

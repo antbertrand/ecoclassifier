@@ -49,6 +49,7 @@ class BarcodeReader(object):
         # image = cv2.imread(args["image"])
 
         # find the barcodes in the image and decode each of the barcodes
+        import pdb;pdb.set_trace()
         barcodes = pyzbar.decode(image)
 
         # loop over the detected barcodes
