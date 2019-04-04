@@ -100,7 +100,9 @@ class Ecoclassifier(object):
         """
         # Open camera, grab images and analyse them on-the-fly
         # The PLC will change command status to indicate that barcode reading time is over
-        camera = Camera(ip=settings.CAMERA_VT_IP)
+        start_t = time.time()
+        camera = Camera(ip=settings.CAMERA_VT_IP, continuous=True)
+        grabber = camera.continuousGrab()
         try:
             self.send_plc_answer(start_answer)
             barcode = BarcodeReader()
@@ -109,18 +111,30 @@ class Ecoclassifier(object):
                 settings.PLC_COMMAND_READ_BARCODE,
                 settings.PLC_COMMAND_LEARN_BARCODE,
             ):
-                frame = camera.grabImage()
+                logger.debug("")
+                start_frame_t = time.time()
+                logger.debug("")
+                #frame = camera.grabImage()
+                frame = next(grabber)
+                logger.debug("")
 
                 # Convert to a suitable format
                 camera.saveImage(frame, ratio=0.5)
+                logger.debug("")
                 image = cv2.cvtColor(frame, cv2.COLOR_BAYER_RG2RGB)
+                logger.debug("")
                 smaller = cv2.resize(image, None, fx=0.5, fy=0.5)
+                logger.debug("")
 
-                # detected = barcode.detect(cv2.resize(image, None, fx=0.5, fy=0.5))
+                # Launch barcode detection. If we *do* have something, write it back to the PLC
+                logger.debug("")
                 detected = barcode.detect(smaller)
+                logger.debug("")
                 if detected:
+                    logger.debug("")
+                    end_t = time.time()
                     logger.info(
-                        "{}EAN13: {}{}".format(bcolors.SUCCESS, detected, bcolors.NONE)
+                        "%sEAN13: %s%s Reading took %.2f sec (%.2f in this frame)" % (bcolors.SUCCESS, detected, bcolors.NONE, end_t - start_t, end_t - start_frame_t)
                     )
                     self.client.write(
                         settings.PLC_TABLE_BARCODE_CONTENT_WRITE,

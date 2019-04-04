@@ -23,6 +23,9 @@ __status__ = "Production"
 # Logging configuration
 # XXX TODO
 
+# Output path
+GRAB_PATH = "/home/majurca/var/acquisitions"
+
 # Loop configuration
 MAIN_LOOP_POOLING_WAIT_SECONDS = 1
 BARCODE_POOLING_WAIT_SECONDS = 0

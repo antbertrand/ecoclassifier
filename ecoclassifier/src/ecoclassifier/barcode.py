@@ -36,7 +36,7 @@ class BarcodeReader(object):
 
     barcode_types = ()
 
-    def __init__(self, barcode_types=(pyzbar.ZBarSymbol.EAN13,)):
+    def __init__(self, barcode_types=(pyzbar.ZBarSymbol.EAN13, pyzbar.ZBarSymbol.CODE128)):
         """Initial configuration
         """
         self.barcode_types = barcode_types
