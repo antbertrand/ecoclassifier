@@ -164,6 +164,7 @@ class Ecoclassifier(object):
                 settings.PLC_COMMAND_READ_BARCODE,
                 settings.PLC_COMMAND_LEARN_BARCODE,
             ) and not RESTART_ME:
+                logger.debug("Entering barcode reading loop")
                 start_frame_t = time.time()
                 frame = camera.grabImage()
                 # frame = next(grabber)
@@ -224,16 +225,16 @@ class Ecoclassifier(object):
             # Connect PLC
             self.client = plc.PLC(settings.PLC_ADDRESS)
 
+            logger.debug("Entering loop!")
             while not RESTART_ME:
                 # Heartbeat
-                logger.debug("Entering loop!")
                 self.heartbeat()
                 self.send_plc_answer(settings.PLC_ANSWER_MAIN_LOOP)
 
                 # Depending on the PLC status, decide what to do
                 command = self.get_plc_command()
+                logger.debug("Main loop received command: %s" % command)
                 if command == settings.PLC_COMMAND_STOP:
-                    self.read_barcode()
                     time.sleep(settings.MAIN_LOOP_POOLING_WAIT_SECONDS)
                 elif command == settings.PLC_COMMAND_READ_BARCODE:
                     self.read_barcode()
