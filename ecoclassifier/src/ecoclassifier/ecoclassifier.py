@@ -81,6 +81,35 @@ class Ecoclassifier(object):
             settings.PLC_TABLE_ANSWER_WRITE, settings.PLC_TABLE_ANSWER_INDEX, status
         )
 
+    def learn_material(self,):
+        """Will take 2 pictures and keep it for later analysis.
+        No time pressure here.
+        """
+        # Say we're happy to do this job
+        self.send_plc_answer(settings.PLC_ANSWER_MATERIAL_LEARN_START)
+
+        # Take both picture and control lightning
+        hz_camera = Camera(ip=settings.CAMERA_HZ_IP)
+        vt_camera = Camera(ip=settings.CAMERA_VT_IP)
+        try:
+            # Take HZ picture, maybe with several lighting patterns
+            hz_camera.setLight(True)
+            image = hz_camera.grabImage()
+            hz_camera.saveImage(image)
+
+            # Take VT picture
+            image = vt_camera.grabImage()
+            vt_camera.saveImage(image)
+
+            # Say we're done
+            self.send_plc_answer(settings.PLC_ANSWER_MATERIAL_LEARN_DONE)
+
+        # Free resources and turn the light off
+        finally:
+            hz_camera.setLight(False)
+            hz_camera.detach()
+            vt_camera.detach()
+
     def learn_barcode(self,):
         """Learn barcodes the long long way
         """
@@ -112,51 +141,45 @@ class Ecoclassifier(object):
                 settings.PLC_COMMAND_READ_BARCODE,
                 settings.PLC_COMMAND_LEARN_BARCODE,
             ):
-                logger.debug("")
                 start_frame_t = time.time()
-                logger.debug("")
                 frame = camera.grabImage()
                 # frame = next(grabber)
-                logger.debug("")
 
                 # Convert to a suitable format
                 #                camera.saveImage(frame, ratio=0.5)
-                logger.debug("")
                 image = cv2.cvtColor(frame, cv2.COLOR_BAYER_RG2RGB)
-                logger.debug("")
-#                smaller = cv2.resize(image, None, fx=0.5, fy=0.5)
-                logger.debug("")
+                #                smaller = cv2.resize(image, None, fx=0.5, fy=0.5)
 
-                # Launch barcode detection. If we *do* have something, write it back to the PLC
-                logger.debug("")
+                # Launch barcode detection.
                 detected = barcode.detect(image)
-                logger.debug("")
                 if not detected:
                     image = imutils.rotate(image, 45)
                     detected = barcode.detect(image)
-                if detected:
-                    logger.debug("")
-                    end_t = time.time()
-                    logger.info(
-                        "%sBARCODE: %s%s Reading took %.2f sec (%.2f in this frame)"
-                        % (
-                            bcolors.SUCCESS,
-                            detected,
-                            bcolors.NONE,
-                            end_t - start_t,
-                            end_t - start_frame_t,
-                        )
-                    )
-                    self.client.write(
-                        settings.PLC_TABLE_BARCODE_CONTENT_WRITE,
-                        settings.PLC_TABLE_BARCODE_CONTENT_INDEX,
-                        detected,
-                    )
-                    self.send_plc_answer(done_answer)
-                    return detected
 
-                # Add a small delay if you don't find the camera+barcode reading cycle slow enough 😬
-                time.sleep(settings.BARCODE_POOLING_WAIT_SECONDS)
+                # We didn't find anything? Add a small delay and loop over
+                # We add a small delay if you don't find the camera+barcode reading cycle slow enough 😬
+                if not detected:
+                    time.sleep(settings.BARCODE_POOLING_WAIT_SECONDS)
+                    continue
+
+                # If we *do* have something, write it back to the PLC *AND LOOP OVER*
+                end_t = time.time()
+                logger.info(
+                    "%sBARCODE: %s%s Reading took %.2f sec (%.2f in this frame)"
+                    % (
+                        bcolors.SUCCESS,
+                        detected,
+                        bcolors.NONE,
+                        end_t - start_t,
+                        end_t - start_frame_t,
+                    )
+                )
+                self.client.write(
+                    settings.PLC_TABLE_BARCODE_CONTENT_WRITE,
+                    settings.PLC_TABLE_BARCODE_CONTENT_INDEX,
+                    detected,
+                )
+                self.send_plc_answer(done_answer)
 
         finally:
             camera.detach()
@@ -186,6 +209,8 @@ class Ecoclassifier(object):
                     self.read_barcode()
                 elif command == settings.PLC_COMMAND_LEARN_BARCODE:
                     self.learn_barcode()
+                elif command == settings.PLC_COMMAND_LEARN_MATERIAL:
+                    self.learn_material()
                 else:
                     raise NotImplementedError("Invalid command: {}".format(command))
 

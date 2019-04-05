@@ -36,17 +36,24 @@ logger = logging.getLogger(__name__)
 
 
 class Camera:
+    """Camera abstraction
+    """
+
     cameras = None
     cam_idx = 0
+    ip = None
 
-    def __init__(self, ip=None, continuous=False):
+    def __init__(self, ip=None):
         """Initialize a camera object, grab the first camera that matches the "authorized_fullnames"
         name.
         """
+        # Save parameters for later
+        self.ip = ip
+
         # Get the transport layer factory.
         self.tlFactory = py.TlFactory.GetInstance()
-
         self.maxCamerasToUse = 2
+
         # Get all attached devices and exit application if no device is found.
         self.devices = self.tlFactory.EnumerateDevices()
         if len(self.devices) == 0:
@@ -79,33 +86,33 @@ class Camera:
             print("Using device ", cam.GetDeviceInfo().GetModelName())
 
         # Let's start the fun
-        if continuous:
-            self.cameras[self.cam_idx].StartGrabbingMax(100)
-        else:
-            # self.cameras[self.cam_idx].StartGrabbing(py.GrabStrategy_LatestImages)
-            self.cameras[self.cam_idx].StartGrabbing(py.GrabStrategy_LatestImageOnly)
+        # if continuous:
+        #     self.cameras[self.cam_idx].StartGrabbingMax(100)
+        # else:
+        #     # self.cameras[self.cam_idx].StartGrabbing(py.GrabStrategy_LatestImages)
+        self.cameras[self.cam_idx].StartGrabbing(py.GrabStrategy_LatestImageOnly)
         # self.cameras.PixelFormat = 'RGB8'
 
-    def continuousGrab(self,):
-        """Continuously grab images
-        """
-        camera = self.cameras[self.cam_idx]
-        while camera.IsGrabbing():
-            grabResult = camera.RetrieveResult(5000, py.TimeoutHandling_ThrowException)
-
-            # Image grabbed successfully?
-            if grabResult.GrabSucceeded():
-                # Access the image data.
-                # print("SizeX: ", grabResult.Width)
-                # print("SizeY: ", grabResult.Height)
-                img = grabResult.Array
-                grabResult.Release()
-                yield img
-                # print("Gray value of first pixel: ", img[0, 0])
-            else:
-                logger.debug(
-                    "%s / %s" % (grabResult.ErrorCode, grabResult.ErrorDescription)
-                )
+    # def continuousGrab(self,):
+    #     """Continuously grab images
+    #     """
+    #     camera = self.cameras[self.cam_idx]
+    #     while camera.IsGrabbing():
+    #         grabResult = camera.RetrieveResult(5000, py.TimeoutHandling_ThrowException)
+    #
+    #         # Image grabbed successfully?
+    #         if grabResult.GrabSucceeded():
+    #             # Access the image data.
+    #             # print("SizeX: ", grabResult.Width)
+    #             # print("SizeY: ", grabResult.Height)
+    #             img = grabResult.Array
+    #             grabResult.Release()
+    #             yield img
+    #             # print("Gray value of first pixel: ", img[0, 0])
+    #         else:
+    #             logger.debug(
+    #                 "%s / %s" % (grabResult.ErrorCode, grabResult.ErrorDescription)
+    #             )
 
     def loadConf(self):
         """Load configuration file (NodeMap.pfs)"""
@@ -184,7 +191,7 @@ class Camera:
                 break
             cam = self.cameras[self.cam_idx]
             grabResult = cam.RetrieveResult(5000, py.TimeoutHandling_ThrowException)
-            cameraContextValue = grabResult.GetCameraContext()
+            # cameraContextValue = grabResult.GetCameraContext()
 
             # Print the index and the model name of the camera.
             # print("Camera ", cameraContextValue, ": ", self.cameras[cameraContextValue].GetDeviceInfo().GetModelName())
@@ -209,15 +216,25 @@ class Camera:
         for cam in self.cameras:
             det = cam.DetachDevice()
 
-    def saveImage(self, frame, camera_id="0", ratio=1):
+    def setLight(self, status):
+        """Set light on current camera (if applicable)
+        We use GPIO here.
+        See file:///Applications/pylon%20Programmer's%20Guide%20and%20API%20Reference.app/Contents/Resources/Html/class_pylon_1_1_c_basler_gig_e_camera.html
+        """
+        cam = self.cameras[self.cam_idx]
+        import pdb
+
+        pdb.set_trace()
+
+    def saveImage(self, frame, name=None, ratio=1):
         # make filename like yyyy-mm-dd-hh-mm-ss-nn-cam_id.png
         curtime = str(datetime.datetime.today())
         curtime = curtime.replace(" ", "-")
         curtime = curtime.replace(":", "-")
         curtime = curtime.replace(".", "-")
-        path = os.path.join(
-            settings.GRAB_PATH, "" + curtime + "-CAM" + str(camera_id) + ".png"
-        )
+        if not name:
+            name = self.ip.replace(".", "-")
+        path = os.path.join(settings.GRAB_PATH, "" + curtime + "-CAM" + name + ".png")
 
         # convert image to good RGB pixel format
         if len(frame.shape) == 2:
