@@ -131,7 +131,7 @@ class Ecoclassifier(object):
         # Open camera, grab images and analyse them on-the-fly
         # The PLC will change command status to indicate that barcode reading time is over
         start_t = time.time()
-        camera = Camera(ip=settings.CAMERA_VT_IP, continuous=False)
+        camera = Camera(ip=settings.CAMERA_VT_IP)
         #        grabber = camera.continuousGrab()
         try:
             self.send_plc_answer(start_answer)

@@ -42,6 +42,7 @@ class Camera:
     cameras = None
     cam_idx = 0
     ip = None
+    _cam = None
 
     def __init__(self, ip=None):
         """Initialize a camera object, grab the first camera that matches the "authorized_fullnames"
@@ -61,36 +62,42 @@ class Camera:
         else:
             logger.debug("%d cameras found.", len(self.devices))
 
-        # Create an array of instant cameras for the found devices and avoid exceeding a maximum number of devices.
-        self.cameras = py.InstantCameraArray(
-            min(len(self.devices), self.maxCamerasToUse)
-        )
+        # Scan devices until our IP camera is found
+        cam_device = None
+        for device_info in self.devices:
+            if device_info.GetIpAddress() == ip:
+                logger.debug("Found camera on {}".format(ip))
+                self._cam_device = self.tlFactory.CreateDevice(device_info)
+                self._cam = py.InstantCamera(self._cam_device)
 
-        # Create and attach all Pylon Devices.
-        for i, cam in enumerate(self.cameras):
-            cam.Attach(self.tlFactory.CreateDevice(self.devices[i]))
-            if ip and cam.GetDeviceInfo().GetIpAddress() == ip:
-                logger.debug(
-                    "Using %s on %s",
-                    cam.GetDeviceInfo().GetFriendlyName(),
-                    cam.GetDeviceInfo().GetIpAddress(),
-                )
-                cam_idx = i
-                break
-            else:
-                logger.debug(
-                    "Ignoring %s on %s",
-                    cam.GetDeviceInfo().GetFriendlyName(),
-                    cam.GetDeviceInfo().GetIpAddress(),
-                )
-            print("Using device ", cam.GetDeviceInfo().GetModelName())
+
+#        for i, cam in enumerate(self.cameras):
+#            cam.Attach(self.tlFactory.CreateDevice(self.devices[i]))
+#            if ip and cam.GetDeviceInfo().GetIpAddress() == ip:
+#                logger.debug(
+#                    "Using %s on %s",
+#                    cam.GetDeviceInfo().GetFriendlyName(),
+#                    cam.GetDeviceInfo().GetIpAddress(),
+ #               )
+ #               cam_idx = i
+ #               self.cam = self.cameras[self.cam_idx]
+ #               break
+ #           else:
+ #               logger.debug(
+ #                   "Ignoring %s on %s",
+ #                   cam.GetDeviceInfo().GetFriendlyName(),
+ #                   cam.GetDeviceInfo().GetIpAddress(),
+ #               )
+ #           print("Using device ", cam.GetDeviceInfo().GetModelName())
 
         # Let's start the fun
         # if continuous:
         #     self.cameras[self.cam_idx].StartGrabbingMax(100)
         # else:
         #     # self.cameras[self.cam_idx].StartGrabbing(py.GrabStrategy_LatestImages)
-        self.cameras[self.cam_idx].StartGrabbing(py.GrabStrategy_LatestImageOnly)
+        assert self._cam.GetDeviceInfo().GetIpAddress() == ip
+        self._cam.StartGrabbing(py.GrabStrategy_LatestImageOnly)
+        #self.cameras[self.cam_idx].StartGrabbing(py.GrabStrategy_LatestImageOnly)
         # self.cameras.PixelFormat = 'RGB8'
 
     # def continuousGrab(self,):
@@ -186,11 +193,10 @@ class Camera:
         countOfImagesToGrab = 1
         # Grab c_countOfImagesToGrab from the cameras.
         for i in range(countOfImagesToGrab):
-            if not self.cameras[self.cam_idx].IsGrabbing():
+            if not self._cam.IsGrabbing():
                 logger.debug("Camera is not in grabbing mode")
                 break
-            cam = self.cameras[self.cam_idx]
-            grabResult = cam.RetrieveResult(5000, py.TimeoutHandling_ThrowException)
+            grabResult = self._cam.RetrieveResult(5000, py.TimeoutHandling_ThrowException)
             # cameraContextValue = grabResult.GetCameraContext()
 
             # Print the index and the model name of the camera.
@@ -213,18 +219,15 @@ class Camera:
     def detach(self,):
         """Detach camera
         """
-        for cam in self.cameras:
-            det = cam.DetachDevice()
+        self._cam.DetachDevice()
 
     def setLight(self, status):
         """Set light on current camera (if applicable)
         We use GPIO here.
         See file:///Applications/pylon%20Programmer's%20Guide%20and%20API%20Reference.app/Contents/Resources/Html/class_pylon_1_1_c_basler_gig_e_camera.html
         """
-        cam = self.cameras[self.cam_idx]
-        import pdb
-
-        pdb.set_trace()
+        self._cam.LineSelector.SetValue("Line3")
+        self._cam.LineInverter.SetValue(status)
 
     def saveImage(self, frame, name=None, ratio=1):
         # make filename like yyyy-mm-dd-hh-mm-ss-nn-cam_id.png
