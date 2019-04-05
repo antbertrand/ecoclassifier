@@ -68,25 +68,24 @@ class Camera:
                 self._cam_device = self.tlFactory.CreateDevice(device_info)
                 self._cam = py.InstantCamera(self._cam_device)
 
-
-#        for i, cam in enumerate(self.cameras):
-#            cam.Attach(self.tlFactory.CreateDevice(self.devices[i]))
-#            if ip and cam.GetDeviceInfo().GetIpAddress() == ip:
-#                logger.debug(
-#                    "Using %s on %s",
-#                    cam.GetDeviceInfo().GetFriendlyName(),
-#                    cam.GetDeviceInfo().GetIpAddress(),
- #               )
- #               cam_idx = i
- #               self.cam = self.cameras[self.cam_idx]
- #               break
- #           else:
- #               logger.debug(
- #                   "Ignoring %s on %s",
- #                   cam.GetDeviceInfo().GetFriendlyName(),
- #                   cam.GetDeviceInfo().GetIpAddress(),
- #               )
- #           print("Using device ", cam.GetDeviceInfo().GetModelName())
+        #        for i, cam in enumerate(self.cameras):
+        #            cam.Attach(self.tlFactory.CreateDevice(self.devices[i]))
+        #            if ip and cam.GetDeviceInfo().GetIpAddress() == ip:
+        #                logger.debug(
+        #                    "Using %s on %s",
+        #                    cam.GetDeviceInfo().GetFriendlyName(),
+        #                    cam.GetDeviceInfo().GetIpAddress(),
+        #               )
+        #               cam_idx = i
+        #               self.cam = self.cameras[self.cam_idx]
+        #               break
+        #           else:
+        #               logger.debug(
+        #                   "Ignoring %s on %s",
+        #                   cam.GetDeviceInfo().GetFriendlyName(),
+        #                   cam.GetDeviceInfo().GetIpAddress(),
+        #               )
+        #           print("Using device ", cam.GetDeviceInfo().GetModelName())
 
         # Let's start the fun
         # if continuous:
@@ -95,7 +94,7 @@ class Camera:
         #     # self.cameras[self.cam_idx].StartGrabbing(py.GrabStrategy_LatestImages)
         assert self._cam.GetDeviceInfo().GetIpAddress() == ip
         self._cam.StartGrabbing(py.GrabStrategy_LatestImageOnly)
-        #self.cameras[self.cam_idx].StartGrabbing(py.GrabStrategy_LatestImageOnly)
+        # self.cameras[self.cam_idx].StartGrabbing(py.GrabStrategy_LatestImageOnly)
         # self.cameras.PixelFormat = 'RGB8'
 
     # def continuousGrab(self,):
@@ -119,15 +118,13 @@ class Camera:
     #                 "%s / %s" % (grabResult.ErrorCode, grabResult.ErrorDescription)
     #             )
 
-    def loadConf(self):
+    def loadConf(self, path):
         """Load configuration file (NodeMap.pfs)"""
-        py.FeaturePersistence.Load(self.conf, self.instant_camera.GetNodeMap())
-        return "Config Loaded"
+        py.FeaturePersistence.Load(path, self._cam.GetNodeMap())
 
-    def saveConf(self):
+    def saveConf(self, path):
         """Save camera status to NodeMap.pfs"""
-        py.FeaturePersistence.Save(self.conf, self.instant_camera.GetNodeMap())
-        return "Config Saved"
+        py.FeaturePersistence.Save(path, self._cam.GetNodeMap())
 
     def ROI(self, width, height, offsetX, offsetY):
         """ROI is like a square(define by width and height)
@@ -194,7 +191,9 @@ class Camera:
             if not self._cam.IsGrabbing():
                 logger.debug("Camera is not in grabbing mode")
                 break
-            grabResult = self._cam.RetrieveResult(5000, py.TimeoutHandling_ThrowException)
+            grabResult = self._cam.RetrieveResult(
+                5000, py.TimeoutHandling_ThrowException
+            )
             # cameraContextValue = grabResult.GetCameraContext()
 
             # Print the index and the model name of the camera.
