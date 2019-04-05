@@ -102,7 +102,7 @@ class Ecoclassifier(object):
             hz_camera = Camera(ip=settings.CAMERA_HZ_IP)
             try:
                 hz_image = hz_camera.grabImage()
-#                 vt_image_flash = vt_camera.grabImage()
+            #                 vt_image_flash = vt_camera.grabImage()
 
             finally:
                 hz_camera.detach()
@@ -117,7 +117,8 @@ class Ecoclassifier(object):
         # Save images (TRAINING MODE ONLY)
         hz_camera.saveImage(hz_image)
         vt_camera.saveImage(vt_image)
-#         vt_camera.saveImage(vt_image_flash)
+
+    #         vt_camera.saveImage(vt_image_flash)
 
     def learn_barcode(self,):
         """Learn barcodes the long long way
@@ -151,6 +152,7 @@ class Ecoclassifier(object):
                 settings.PLC_COMMAND_READ_BARCODE,
                 settings.PLC_COMMAND_LEARN_BARCODE,
             ):
+                logger.debug("AUTOMATIC UPDATE IS A HUGE SUCCESS")
                 start_frame_t = time.time()
                 frame = camera.grabImage()
                 # frame = next(grabber)
@@ -199,7 +201,6 @@ class Ecoclassifier(object):
             # If we are in training mode, capture the whole content too (very convenient)
             if detected and start_answer == settings.PLC_ANSWER_BARCODE_LEARN_START:
                 self.learn_material(silent=True)
-
 
     @tenacity.retry(
         wait=tenacity.wait_exponential(multiplier=1, min=1, max=3),
