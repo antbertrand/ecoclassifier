@@ -61,11 +61,10 @@ class BarcodeReader(object):
         # image = cv2.imread(args["image"])
 
         # find the barcodes in the image and decode each of the barcodes
-        logger.debug("Trying to detect barcode (image size=%s)", image.shape)
+        # logger.debug("Trying to detect barcode (image size=%s)", image.shape)
         start = time.time()
 
         # Convert to B&W, enhance contrast
-        logger.debug("Before image conversion")
         image = cv2.resize(image, None, fx=0.5, fy=0.5)
         image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
         image = cv2.equalizeHist(image)
@@ -77,7 +76,6 @@ class BarcodeReader(object):
         y = int(image.shape[1] / 10)
         w = int(image.shape[1] - (y * 2))
         image = image[y : y + h, x : x + w]
-        logger.debug("After image conversion")
 
         # Actually perform decoding
         barcodes = pyzbar.decode(image, self.barcode_types)
@@ -103,8 +101,7 @@ class BarcodeReader(object):
                 (0, 255, 0),
                 5,
             )
-        cv2.imwrite(path, image)
-        logger.debug("Wrote image")
+        # cv2.imwrite(path, image)
 
         # loop over the detected barcodes
         for barcode in barcodes:

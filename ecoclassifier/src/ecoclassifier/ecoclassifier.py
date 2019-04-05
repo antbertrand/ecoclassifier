@@ -81,19 +81,24 @@ class Ecoclassifier(object):
             settings.PLC_TABLE_ANSWER_WRITE, settings.PLC_TABLE_ANSWER_INDEX, status
         )
 
-    def learn_material(self,):
+    def learn_material(self, silent=False):
         """Will take 2 pictures and keep it for later analysis.
         No time pressure here.
+        If silent=True, we don't send answers to the PLC (useful to "snag"
+        training captures while in other PLC modes)
         """
         # Say we're happy to do this job
-        self.send_plc_answer(settings.PLC_ANSWER_MATERIAL_LEARN_START)
+        if not silent:
+            self.send_plc_answer(settings.PLC_ANSWER_MATERIAL_LEARN_START)
 
         # Take both picture and control lightning
+        logger.debug("Attach BOTH cameras")
         hz_camera = Camera(ip=settings.CAMERA_HZ_IP)
         vt_camera = Camera(ip=settings.CAMERA_VT_IP)
+
         try:
             # Take HZ picture, maybe with several lighting patterns
-            hz_camera.setLight(True)
+            # hz_camera.setLight(True)
             image = hz_camera.grabImage()
             hz_camera.saveImage(image)
 
@@ -102,11 +107,21 @@ class Ecoclassifier(object):
             vt_camera.saveImage(image)
 
             # Say we're done
-            self.send_plc_answer(settings.PLC_ANSWER_MATERIAL_LEARN_DONE)
+            if not silent:
+                self.send_plc_answer(settings.PLC_ANSWER_MATERIAL_LEARN_DONE)
 
         # Free resources and turn the light off
         finally:
-            hz_camera.setLight(False)
+            # Cautiously turn the lights off
+            try:
+                pass
+                # hz_camera.setLight(False)
+            except Exception as e:
+                logger.exception("Exception light release")
+                sentry_sdk.capture_exception(e)
+ 
+            # Detach cameras
+            logger.debug("Detach BOTH cameras")
             hz_camera.detach()
             vt_camera.detach()
 
@@ -130,9 +145,10 @@ class Ecoclassifier(object):
         """
         # Open camera, grab images and analyse them on-the-fly
         # The PLC will change command status to indicate that barcode reading time is over
+        detected = False
         start_t = time.time()
         camera = Camera(ip=settings.CAMERA_VT_IP)
-        #        grabber = camera.continuousGrab()
+
         try:
             self.send_plc_answer(start_answer)
             barcode = BarcodeReader()
@@ -180,9 +196,16 @@ class Ecoclassifier(object):
                     detected,
                 )
                 self.send_plc_answer(done_answer)
+                return detected
 
         finally:
+            # Free camera
             camera.detach()
+
+            # If we are in training mode, capture the whole content too (very convenient)
+            if detected and start_answer == settings.PLC_ANSWER_BARCODE_LEARN_START:
+                self.learn_material(silent=True)
+
 
     @tenacity.retry(
         wait=tenacity.wait_exponential(multiplier=1, min=2, max=600),
