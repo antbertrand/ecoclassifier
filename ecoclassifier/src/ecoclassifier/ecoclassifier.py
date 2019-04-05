@@ -21,6 +21,7 @@ __status__ = "Production"
 
 import os
 import time
+import signal
 import logging
 
 import sentry_sdk
@@ -34,6 +35,17 @@ from . import plc
 from .camera import Camera
 from .barcode import BarcodeReader
 from . import bcolors
+
+# Automatic restart variable and signal
+RESTART_ME = False
+def hup_handler(a, b):
+    """Ask for restart at the next iteration
+    """
+    global RESTART_ME
+    logger.info("Received HUP")
+    RESTART_ME = True
+
+signal.signal(signal.SIGHUP, hup_handler)
 
 # Configure Sentry
 sentry_sdk.init(
@@ -151,8 +163,7 @@ class Ecoclassifier(object):
             while self.get_plc_command() in (
                 settings.PLC_COMMAND_READ_BARCODE,
                 settings.PLC_COMMAND_LEARN_BARCODE,
-            ):
-                logger.debug("AUTOMATIC UPDATE IS A HUGE SUCCESS")
+            ) and not RESTART_ME:
                 start_frame_t = time.time()
                 frame = camera.grabImage()
                 # frame = next(grabber)
@@ -208,12 +219,12 @@ class Ecoclassifier(object):
         stop=tenacity.stop_after_attempt(6),
     )
     def run(self,):
-        """Main loop"""
+        """Main loop."""
         try:
             # Connect PLC
             self.client = plc.PLC(settings.PLC_ADDRESS)
 
-            while True:
+            while not RESTART_ME:
                 # Heartbeat
                 logger.debug("Entering loop!")
                 self.heartbeat()
