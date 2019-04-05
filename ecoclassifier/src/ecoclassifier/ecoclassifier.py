@@ -102,7 +102,7 @@ class Ecoclassifier(object):
             hz_camera = Camera(ip=settings.CAMERA_HZ_IP)
             try:
                 hz_image = hz_camera.grabImage()
-                vt_image_flash = vt_camera.grabImage()
+#                 vt_image_flash = vt_camera.grabImage()
 
             finally:
                 hz_camera.detach()
@@ -117,7 +117,7 @@ class Ecoclassifier(object):
         # Save images (TRAINING MODE ONLY)
         hz_camera.saveImage(hz_image)
         vt_camera.saveImage(vt_image)
-        vt_camera.saveImage(vt_image_flash)
+#         vt_camera.saveImage(vt_image_flash)
 
     def learn_barcode(self,):
         """Learn barcodes the long long way

@@ -91,6 +91,7 @@ class BarcodeReader(object):
         image = cv2.cvtColor(image, cv2.COLOR_BAYER_RG2RGB)
         if barcodes:
             barcode = barcodes[0]
+            area = (barcode.rect.width, barcode.rect.height)
             cv2.rectangle(
                 image,
                 (barcode.rect.left, barcode.rect.top),
@@ -122,13 +123,19 @@ class BarcodeReader(object):
 
             # print the barcode type and data to the terminal
             logger.debug(
-                "Found %s barcode: %s in %.2f seconds",
+                "Found %s barcode: %s in %.2f seconds, Area=%s",
                 barcode_type,
                 barcode_data,
                 (end - start),
+                area,
             )
             if not barcode_type in [b.name for b in self.barcode_types]:
                 logger.info("IGNORING BARCODE %s" % barcode_type)
+                continue
+
+            if area[0] < 2 or area[1] < 2:
+                logger.debug("AREA TOO SMALL - ignoring")
+                continue
 
             # Return it
             return barcode_data

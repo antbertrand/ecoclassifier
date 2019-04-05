@@ -213,7 +213,7 @@ class Camera:
 
             # Output status and return image
             end_t = time.time()
-            logger.debug("Image grabbing time: %.02f" % (end_t - start_t))
+            # logger.debug("Image grabbing time: %.02f" % (end_t - start_t))
             return img
 
     def detach(self,):
