@@ -87,43 +87,37 @@ class Ecoclassifier(object):
         If silent=True, we don't send answers to the PLC (useful to "snag"
         training captures while in other PLC modes)
         """
+        vt_image = None
+
         # Say we're happy to do this job
         if not silent:
             self.send_plc_answer(settings.PLC_ANSWER_MATERIAL_LEARN_START)
 
-        # Take both picture and control lightning
-        logger.debug("Attach BOTH cameras")
-        hz_camera = Camera(ip=settings.CAMERA_HZ_IP)
+        # Take pictures camera per camera, VT first
         vt_camera = Camera(ip=settings.CAMERA_VT_IP)
-
         try:
-            # Take HZ picture, maybe with several lighting patterns
-            # hz_camera.setLight(True)
-            image = hz_camera.grabImage()
-            hz_camera.saveImage(image)
+            vt_image = vt_camera.grabImage()
 
-            # Take VT picture
-            image = vt_camera.grabImage()
-            vt_camera.saveImage(image)
-
-            # Say we're done
-            if not silent:
-                self.send_plc_answer(settings.PLC_ANSWER_MATERIAL_LEARN_DONE)
-
-        # Free resources and turn the light off
-        finally:
-            # Cautiously turn the lights off
+            # Take HZ, this will trigger lighting. WE ALSO TAKE ANOTHER VT PICTURE.
+            hz_camera = Camera(ip=settings.CAMERA_HZ_IP)
             try:
-                pass
-                # hz_camera.setLight(False)
-            except Exception as e:
-                logger.exception("Exception light release")
-                sentry_sdk.capture_exception(e)
- 
-            # Detach cameras
-            logger.debug("Detach BOTH cameras")
-            hz_camera.detach()
+                hz_image = hz_camera.grabImage()
+                vt_image_flash = vt_camera.grabImage()
+
+            finally:
+                hz_camera.detach()
+
+        finally:
             vt_camera.detach()
+
+        # Say we're done
+        if not silent:
+            self.send_plc_answer(settings.PLC_ANSWER_MATERIAL_LEARN_DONE)
+
+        # Save images (TRAINING MODE ONLY)
+        hz_camera.saveImage(hz_image)
+        vt_camera.saveImage(vt_image)
+        vt_camera.saveImage(vt_image_flash)
 
     def learn_barcode(self,):
         """Learn barcodes the long long way
