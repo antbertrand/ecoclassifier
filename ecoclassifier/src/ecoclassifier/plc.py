@@ -27,8 +27,6 @@ import snap7
 from . import settings
 
 # Logging configuration
-logFormatter = "[%(asctime)s] p%(process)-8s %(levelname)-8s {%(pathname)s:%(lineno)d} - %(message)s"
-logging.basicConfig(format=logFormatter, level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 

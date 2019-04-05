@@ -56,8 +56,6 @@ sentry_sdk.init(
 
 # Configure logging
 # logFormatter = "%(asctime)s %(name)-12s %(message)s"
-logFormatter = "[%(asctime)s] p%(process)-8s %(levelname)-8s {%(pathname)s:%(lineno)d} - %(message)s"
-logging.basicConfig(format=logFormatter, level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 logger.info("Starting Ecoclassifier module.")
 

@@ -19,9 +19,11 @@ __maintainer__ = "Pierre-Julien Grizel"
 __email__ = "pjgrizel@numericube.com"
 __status__ = "Production"
 
+import logging
 
 # Logging configuration
-# XXX TODO
+LOG_FORMAT = "[%(asctime)s] p%(process)-8s %(levelname)-8s {%(name)s:%(filename)s:%(lineno)d} - %(message)s"
+logging.basicConfig(format=LOG_FORMAT, level=logging.DEBUG)
 
 # Output path
 GRAB_PATH = "/home/majurca/var/acquisitions"
