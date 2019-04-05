@@ -59,6 +59,9 @@ setuptools.setup(
         "Operating System :: OS Independent",
     ],
     entry_points={
-        "console_scripts": ["ecoclassifier=ecoclassifier.ecoclassifier:main"]
+        "console_scripts": [
+            "ecoclassifier=ecoclassifier.ecoclassifier:main",
+            "uploader=uploader.uploader:main",
+        ]
     },
 )
