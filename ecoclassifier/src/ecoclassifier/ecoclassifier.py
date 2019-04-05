@@ -202,8 +202,9 @@ class Ecoclassifier(object):
 
 
     @tenacity.retry(
-        wait=tenacity.wait_exponential(multiplier=1, min=2, max=600),
+        wait=tenacity.wait_exponential(multiplier=1, min=1, max=3),
         after=tenacity.after_log(logger, logging.DEBUG),
+        stop=tenacity.stop_after_attempt(6),
     )
     def run(self,):
         """Main loop"""
