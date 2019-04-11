@@ -102,7 +102,7 @@ class Ecoclassifier(object):
         self.send_plc_answer(settings.PLC_ANSWER_MATERIAL_READ_START)
         try:
             # Grab+Save images and return "we don't know"
-            self.get_images(save=True)
+            self.take_images(save=True)
             self.client.write(
                 settings.PLC_TABLE_MATERIAL_CONTENT_WRITE,
                 settings.PLC_TABLE_MATERIAL_CONTENT_INDEX,
@@ -112,7 +112,7 @@ class Ecoclassifier(object):
         finally:
             self.send_plc_answer(settings.PLC_ANSWER_MATERIAL_READ_DONE)
 
-    def get_images(self, save=False):
+    def take_images(self, save=False):
         """Will take n pictures and return a dict:
         {
             "hz_image": <image>,
@@ -157,7 +157,7 @@ class Ecoclassifier(object):
             self.send_plc_answer(settings.PLC_ANSWER_MATERIAL_LEARN_START)
 
         # Take pictures
-        self.get_images(save=True)
+        self.take_images(save=True)
 
         # Say we're done
         if not silent:
@@ -224,14 +224,12 @@ class Ecoclassifier(object):
                 # If we *do* have something, write it back to the PLC *AND LOOP OVER*
                 end_t = time.time()
                 logger.info(
-                    "%sBARCODE: %s%s Reading took %.2f sec (%.2f in this frame)"
-                    % (
-                        bcolors.SUCCESS,
-                        detected,
-                        bcolors.NONE,
-                        end_t - start_t,
-                        end_t - start_frame_t,
-                    )
+                    "%sBARCODE: %s%s Reading took %.2f sec (%.2f in this frame)",
+                    bcolors.SUCCESS,
+                    detected,
+                    bcolors.NONE,
+                    end_t - start_t,
+                    end_t - start_frame_t,
                 )
                 self.client.write(
                     settings.PLC_TABLE_BARCODE_CONTENT_WRITE,
