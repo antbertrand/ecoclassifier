@@ -32,24 +32,25 @@ from ecoclassifier import settings
 
 def main():
     """Main runtime"""
-    # Look into Azure
-    file_service = FileService(
-        account_name="majurca",
-        sas_token="?st=2019-04-04T21%3A21%3A42Z&se=2020-04-05T21%3A21%3A00Z&sp=rwdl&sv=2018-03-28&sr=s&sig=fSZNp8KFDtZpwikWc%2FIHQRcOAbyRDqLmZfTn4W0J6x4%3D",
-    )
+    while True:
+        # Look into Azure
+        file_service = FileService(
+            account_name="majurca",
+            sas_token="?st=2019-04-04T21%3A21%3A42Z&se=2020-04-05T21%3A21%3A00Z&sp=rwdl&sv=2018-03-28&sr=s&sig=fSZNp8KFDtZpwikWc%2FIHQRcOAbyRDqLmZfTn4W0J6x4%3D",
+        )
 
-    # Scan file, upload them one by one restlessly
-    # Only upload root directory
-    for root, dirs, files in os.walk(settings.GRAB_PATH):
-        for fn in files:
-            file_service.create_file_from_path(
-                "datasets", "acquisitions", fn, os.path.join(root, fn)
-            )
-            os.remove(os.path.join(root, fn))
+        # Scan file, upload them one by one restlessly
+        # Only upload root directory
+        for root, dirs, files in os.walk(settings.GRAB_PATH):
+            for fn in files:
+                file_service.create_file_from_path(
+                    "datasets", "acquisitions", fn, os.path.join(root, fn)
+                )
+                os.remove(os.path.join(root, fn))
+
+        time.sleep(60)
 
 
 # Main loop
 if __name__ == "__main__":
-    while True:
-        main()
-        time.sleep(60)
+    main()
