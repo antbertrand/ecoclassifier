@@ -106,8 +106,8 @@ PLC_ANSWER_MATERIAL_EMPTY = b"\x00\x21"
 # 19 # P E L D  <4>
 # 20 # PET <1> opaque
 # 22 # Opercule aluminium
-MATERIAL_CODE_UNKNOWN = "0\x00"
-MATERIAL_CODE_PET_LIGHT = "1\x00"
+MATERIAL_CODE_UNKNOWN = b"0\x00"
+MATERIAL_CODE_PET_LIGHT = b"1\x00"
 
 # Cameras serial numbers
 # HZ is for Horizontal (front-facing) cameras.
