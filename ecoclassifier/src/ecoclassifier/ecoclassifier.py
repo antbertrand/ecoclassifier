@@ -38,12 +38,15 @@ from . import bcolors
 
 # Automatic restart variable and signal
 RESTART_ME = False
+
+
 def hup_handler(a, b):
     """Ask for restart at the next iteration
     """
     global RESTART_ME
     logger.info("Received HUP")
     RESTART_ME = True
+
 
 signal.signal(signal.SIGHUP, hup_handler)
 
@@ -91,17 +94,34 @@ class Ecoclassifier(object):
             settings.PLC_TABLE_ANSWER_WRITE, settings.PLC_TABLE_ANSWER_INDEX, status
         )
 
-    def learn_material(self, silent=False):
-        """Will take 2 pictures and keep it for later analysis.
-        No time pressure here.
-        If silent=True, we don't send answers to the PLC (useful to "snag"
-        training captures while in other PLC modes)
+    def read_material(self):
+        """Will take 2 pictures, analyze them and return result.
+        PRELIMINARY WORK MODE: we don't take any picture, we just say we can't recognise.
+        """
+        # Tell PLC we're starting to read
+        self.send_plc_answer(settings.PLC_ANSWER_MATERIAL_READ_START)
+        try:
+            # Grab+Save images and return "we don't know"
+            self.get_images(save=True)
+            self.client.write(
+                settings.PLC_TABLE_MATERIAL_CONTENT_WRITE,
+                settings.PLC_TABLE_MATERIAL_CONTENT_INDEX,
+                settings.MATERIAL_CODE_UNKNOWN,
+            )
+
+        finally:
+            self.send_plc_answer(settings.PLC_ANSWER_MATERIAL_READ_DONE)
+
+    def get_images(self, save=False):
+        """Will take n pictures and return a dict:
+        {
+            "hz_image": <image>,
+            "vt_image": <image>,
+        }
+        If save is True, also save images on the fly
         """
         vt_image = None
-
-        # Say we're happy to do this job
-        if not silent:
-            self.send_plc_answer(settings.PLC_ANSWER_MATERIAL_LEARN_START)
+        hz_image = None
 
         # Take pictures camera per camera, VT first
         vt_camera = Camera(ip=settings.CAMERA_VT_IP)
@@ -112,7 +132,6 @@ class Ecoclassifier(object):
             hz_camera = Camera(ip=settings.CAMERA_HZ_IP)
             try:
                 hz_image = hz_camera.grabImage()
-            #                 vt_image_flash = vt_camera.grabImage()
 
             finally:
                 hz_camera.detach()
@@ -120,15 +139,29 @@ class Ecoclassifier(object):
         finally:
             vt_camera.detach()
 
+        # Save images (TRAINING MODE ONLY)
+        if save:
+            hz_camera.saveImage(hz_image)
+            vt_camera.saveImage(vt_image)
+
+        return {"hz_image": hz_image, "vt_image": vt_image}
+
+    def learn_material(self, silent=False):
+        """Will take 2 pictures and keep it for later analysis.
+        No time pressure here.
+        If silent=True, we don't send answers to the PLC (useful to "snag"
+        training captures while in other PLC modes)
+        """
+        # Say we're happy to do this job
+        if not silent:
+            self.send_plc_answer(settings.PLC_ANSWER_MATERIAL_LEARN_START)
+
+        # Take pictures
+        self.get_images(save=True)
+
         # Say we're done
         if not silent:
             self.send_plc_answer(settings.PLC_ANSWER_MATERIAL_LEARN_DONE)
-
-        # Save images (TRAINING MODE ONLY)
-        hz_camera.saveImage(hz_image)
-        vt_camera.saveImage(vt_image)
-
-    #         vt_camera.saveImage(vt_image_flash)
 
     def learn_barcode(self,):
         """Learn barcodes the long long way
@@ -158,10 +191,14 @@ class Ecoclassifier(object):
             self.send_plc_answer(start_answer)
             barcode = BarcodeReader()
             logger.info("Starting barcode reader")
-            while self.get_plc_command() in (
-                settings.PLC_COMMAND_READ_BARCODE,
-                settings.PLC_COMMAND_LEARN_BARCODE,
-            ) and not RESTART_ME:
+            while (
+                self.get_plc_command()
+                in (
+                    settings.PLC_COMMAND_READ_BARCODE,
+                    settings.PLC_COMMAND_LEARN_BARCODE,
+                )
+                and not RESTART_ME
+            ):
                 logger.debug("Entering barcode reading loop")
                 start_frame_t = time.time()
                 frame = camera.grabImage()

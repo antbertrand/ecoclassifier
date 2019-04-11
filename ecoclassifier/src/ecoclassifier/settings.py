@@ -47,12 +47,13 @@ PLC_TABLE_COMMAND_INDEX = 2
 PLC_TABLE_ANSWER_WRITE = 42
 PLC_TABLE_ANSWER_INDEX = 2
 PLC_TABLE_BARCODE_STATUS_WRITE = 42
-PLC_TABLE_BARCODE_STATUS_INDEX = None
+# PLC_TABLE_BARCODE_STATUS_INDEX = None
 PLC_TABLE_BARCODE_CONTENT_WRITE = 42
 PLC_TABLE_BARCODE_CONTENT_INDEX = 4
-PLC_TABLE_MATERIAL_WRITE = 6
-PLC_TABLE_MATERIAL_CONTENT = 7
-PLC_TABLE_DEFECT = 8
+PLC_TABLE_MATERIAL_CONTENT_WRITE = 42
+PLC_TABLE_MATERIAL_CONTENT_INDEX = 36
+PLC_TABLE_DEFECT_WRITE = 42
+PLC_TABLE_DEFECT_INDEX = 68
 
 # Command index
 PLC_COMMAND_STOP = b"\x00\x00"  # Nothing to do
@@ -82,6 +83,31 @@ PLC_ANSWER_MATERIAL_EMPTY = b"\x00\x21"
 # 33 – pas de code matière
 # 41 – apprentissages lancés
 # 42 – apprentissages terminés
+
+# MATERIAL TYPES
+# Code
+# Matière
+# 0 # Matière inconnue
+# 1 # PET <1> clair
+# 2 # PET <1> foncé
+# 3 # PE-HD <2> opaque
+# 4 # Acier // recyclable
+# 5 # Alu //  recyclable
+# 6 # ELA
+# 7 # Carton / Cartonnette
+# 8 # PVC <3>
+# 9 # Plastique souple, clair et opaque sachet - film alimentaire –stick
+# 10 # P P <5>
+# 11 # Verre
+# 12 # PET <1> Barquette opaque
+# 13 # Papier emballage alimentaire
+# 17 # P S E <6>
+# 18 # PET <1> Barquette  clair
+# 19 # P E L D  <4>
+# 20 # PET <1> opaque
+# 22 # Opercule aluminium
+MATERIAL_CODE_UNKNOWN = 0
+MATERIAL_CODE_PET_LIGHT = 1
 
 # Cameras serial numbers
 # HZ is for Horizontal (front-facing) cameras.
