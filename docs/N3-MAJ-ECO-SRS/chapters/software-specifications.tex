@@ -1,0 +1,108 @@
+%!TeX encoding = UTF-8
+%!TeX root = ../main.tex
+\chapter{Software specifications}
+\label{chapter:softwarereqs}
+
+\section{Bootstrap module}
+
+The bootstrap module must initialize the machine and must be able to self-update from the internet.
+
+With minimal manual operations, a PC have to be setup and the required software has to be installed on it.
+
+A keyboard and/or a screen can be used during this phase in order to (at least) install a headless operating
+system (Debian or Ubuntu) and execute the required Bootstrap commands.
+
+Bootstrap commands will be detailed in an annex of this documentation.
+
+
+\section{Eco-classifier}
+
+The eco-classifier module is the main program. It handles image acquisition, conversion, treatment, analysis
+and communication with the \gls{plc}.
+
+It's divided in smaller functions that perform individual tasks, triggered by the \gls{plc}.
+
+\subsection{Main loop}
+
+Main loop's purpose is to open necessary connexions, listen to the \gls{plc} and decide what to do depending on what's available here.
+
+Here's the list of tasks this section must provide:
+
+\begin{enumerate}
+    \item Handle the \gls{heartbeat} (see \ref{section:heartbeat})
+    \item Check if a barcode scan has to be performed (see \ref{section:barcode})
+    \item Check if a plastic recognition task has to be performed (see \ref{section:classifier})
+    \item Wait for a little while and go back to step 1
+\end{enumerate}
+
+\subsection{Barcode reader}
+
+The barcode reader function is triggered by one of the following signals:
+
+\begin{itemize}
+	\item Barcode read
+	\item Barcode learn
+\end{itemize}
+
+The operations for the barcode read sequence are these:
+
+\begin{enumerate}
+    \item Open the \gls{vtcamera}
+    \item Check that the \gls{plc} command is still "barcode reading", if not skip next step
+    \item Read a barcode if present (if not present, return to previous step)
+    \item Close the camera
+    \item Transmit the barcode value and/or status to the \gls{plc} if we have it
+\end{enumerate}
+
+\importantbox{If no barcode can be read, it's up to the \gls{plc} to decide to cut the connexion
+by using the command value}
+
+\importantbox{When returning to the PLC, the output value must be ASCII characters (ie. starting from 64)}
+
+EAN length in the \gls{plc} is 32~characters.
+
+For barcode learn, the sequence is:
+
+\begin{enumerate}
+    \item Open the \gls{vtcamera}
+    \item Check that the \gls{plc} command is still "barcode reading", if not go to close camera
+    \item Read a barcode if present (if not present, return to previous step)
+	\item Perform a top-facing acquisition with the \gls{vtcamera}
+	\item Open the \gls{hzcamera} and light, perform the acqusition and close it
+    \item Close the \gls{vtcamera}
+    \item Transmit the barcode value and/or status to the \gls{plc} if we have it
+	\item Save images to the \texttt{/home/majurca/var/acquisitions} folder
+\end{enumerate}
+
+This way, an important number of acquisitions can be made without mechanical interaction from the machine itself.
+
+\section{Bootstrap module}
+
+
+\section{Main loop}
+
+Main loop's purpose is to open necessary connexions, listen to the \gls{plc} and decide what to do depending on what's available here.
+
+Here's the list of tasks this section must provide:
+
+\begin{enumerate}
+    \item Handle the \gls{heartbeat} (see \ref{section:heartbeat})
+    \item Check if a barcode scan has to be performed (see \ref{section:barcode})
+    \item Check if a plastic recognition task has to be performed (see \ref{section:classifier})
+    \item Wait for a little while and go back to step 1
+\end{enumerate}
+
+\section{Hearbeat}
+
+
+\section{Container: \texttt{ecoclassifier-sync}}
+
+\subsection{Container role}
+
+This is the container that syncs acquired images to our Azure BLOB.
+
+\subsection{Dependencies}
+
+\begin{itemize}
+    \item Azure Command-Line Interface
+\end{itemize}

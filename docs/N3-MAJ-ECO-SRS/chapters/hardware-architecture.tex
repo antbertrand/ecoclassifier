@@ -1,0 +1,72 @@
+%!TeX encoding = UTF-8
+%!TeX root = ../main.tex
+\chapter{Architecture (hardware)}
+\label{chapter:hardwarearchitecture}
+
+This chapter explains the general architecture of the project (hardware).
+
+% \section{Hardware architecture}
+
+The eco-classifier project has the following hardware parts:
+
+\begin{itemize}
+    \item One front-facing GigE camera
+    \item One top-facing GigE camera
+    \item Physical cables to connect those to the main PC
+    \item A light panel, connected to one of the cameras
+    \item An "ambiant light panel", always on for computer vision operations
+    \item A main analysis PC (which is where most of this project should be running)
+    \item An ethernet cable connecting the main PC to the Profinet-enabled automate
+    \item An outbound (internet) link (out of scope)
+\end{itemize}
+
+Nothing more.
+
+\todo{Describe the cameras, specifications, etc}
+
+\section{PC}
+
+Here are our requirements for the PC connected to both the \gls{plc} and the cameras.
+
+\begin{itemize}
+    \item At least 16Gb RAM. The images are huge and both the images and the algorithm need to fit into memory
+    \item An Intel \texttt{core i5} or \texttt{core i7} CPU
+    \item No GPU necessary
+    \item At least 3\footnote{They often come by 4} dedicated Gigabit ethernet ports
+    \item DIN rail physical shape
+    \item Maximum DIN module width has to be validated with \gls{dinatec}
+    \item 24~Volts power
+\end{itemize}
+
+\section{Cameras and lenses}
+
+Both cameras are of the same type:
+
+\begin{itemize}
+    \item \texttt{Basler acA5472-5gc} area scan cameras
+    \item Ethernet (GigE) connectivity
+\end{itemize}
+
+Both lenses are of the same type:
+
+\begin{itemize}
+    \item 25mm 1.4
+    \item C-mount
+\end{itemize}
+
+In this document, they are called \gls{vtcamera} and \gls{hzcamera}.
+
+
+\section{Light panel}
+
+Provided by i2s, out of scope for now.
+
+\section{Networking}
+
+Networking is critical in our application. Several issues must be considered.
+
+\begin{itemize}
+    \item Use a 1Gb switch/router, or, even better, dedicated Ethernet ports on the PC
+    \item Use Jumbo Frames (see \url{https://linuxconfig.org/how-to-enable-jumbo-frames-in-linux})
+    \item 9500~packet delay seems to be the accurate value (see )
+\end{itemize}
