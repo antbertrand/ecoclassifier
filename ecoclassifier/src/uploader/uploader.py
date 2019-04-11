@@ -29,23 +29,27 @@ from azure.storage.file import FileService
 # pylint: disable=F403
 from ecoclassifier import settings
 
+
 def main():
     """Main runtime"""
     # Look into Azure
-    file_service = FileService(account_name='majurca', sas_token="?st=2019-04-04T21%3A21%3A42Z&se=2020-04-05T21%3A21%3A00Z&sp=rwdl&sv=2018-03-28&sr=s&sig=fSZNp8KFDtZpwikWc%2FIHQRcOAbyRDqLmZfTn4W0J6x4%3D")
+    file_service = FileService(
+        account_name="majurca",
+        sas_token="?st=2019-04-04T21%3A21%3A42Z&se=2020-04-05T21%3A21%3A00Z&sp=rwdl&sv=2018-03-28&sr=s&sig=fSZNp8KFDtZpwikWc%2FIHQRcOAbyRDqLmZfTn4W0J6x4%3D",
+    )
 
     # Scan file, upload them one by one restlessly
     # Only upload root directory
     for root, dirs, files in os.walk(settings.GRAB_PATH):
         for fn in files:
             file_service.create_file_from_path(
-                "datasets",
-                "acquisitions",
-                fn,
-                os.path.join(root, fn),
+                "datasets", "acquisitions", fn, os.path.join(root, fn)
             )
             os.remove(os.path.join(root, fn))
 
+
 # Main loop
 if __name__ == "__main__":
-    main()
+    while True:
+        main()
+        time.sleep(60)
