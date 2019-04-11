@@ -199,7 +199,7 @@ class Ecoclassifier(object):
                 self.client.write(
                     settings.PLC_TABLE_BARCODE_CONTENT_WRITE,
                     settings.PLC_TABLE_BARCODE_CONTENT_INDEX,
-                    detected,
+                    "{}\x00".format(detected),
                 )
                 self.send_plc_answer(done_answer)
                 return detected
@@ -240,6 +240,8 @@ class Ecoclassifier(object):
                     self.learn_barcode()
                 elif command == settings.PLC_COMMAND_LEARN_MATERIAL:
                     self.learn_material()
+                elif command == settings.PLC_COMMAND_READ_MATERIAL:
+                    self.read_material()
                 else:
                     raise NotImplementedError("Invalid command: {}".format(command))
 
