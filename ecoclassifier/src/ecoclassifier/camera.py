@@ -24,7 +24,7 @@ import time
 import logging
 import pypylon.pylon as py
 
-# import numpy as np
+import numpy as np
 import cv2
 import datetime
 
@@ -126,58 +126,59 @@ class Camera:
         """Save camera status to NodeMap.pfs"""
         py.FeaturePersistence.Save(path, self._cam.GetNodeMap())
 
-    def ROI(self, width, height, offsetX, offsetY):
-        """ROI is like a square(define by width and height)
-        #moving by offset settings (define by OffsetX and OffsetY)
-        #For Auto - Brightness/WithBalance/Gain adjust ON THE ROI
-        #settings GainAuto and BalanceWhitAuto MUST be set in Continuous mode
-        """
-        Camera.setAutoGain(self)
-        Camera.setAutoWhiteBalance(self)
-
-        for cam in self.cameras:
-
-            # Define correct target AutoTargetBrightness.
-            # It's the target goal for image settings quality.
-            # Must be set between [0.19608 to 0.80392]
-            # cam.AutoTargetBrightness.SetValue(AutoTargetBrightnessValue)
-
-            # select the ROI1. You can use two ROI, (ROI1 and ROI2)
-            cam.AutoFunctionROISelector.SetValue("ROI1")
-
-            # ROI is like a square(define by width and height)
-            # moving by offset settings (define by OffsetX and OffsetY)
-
-            # Set the square Width
-            cam.AutoFunctionROIWidth.SetValue(width)
-            # Set the square Height
-            cam.AutoFunctionROIHeight.SetValue(height)
-            # Set the OffsetX
-            cam.AutoFunctionROIOffsetX.SetValue(offsetX)
-            # Set the Offsety
-            cam.AutoFunctionROIOffsetY.SetValue(offsetY)
-
-            # Set auto adjust Brightness and WhiteBalance in Continuous Mode, for the ROI's
-            cam.AutoFunctionROIUseBrightness.SetValue(1)
-            cam.AutoFunctionROIUseWhiteBalance.SetValue(1)
-
-    def setAutoExposure(self):
-        """To set Auto Exposure in Continuous Mode
-        """
-        for cam in self.cameras:
-            cam.ExposureAuto.SetValue("Continuous")
-
-    def setAutoGain(self):
-        """To set Auto Gain in Continuous Mode
-        """
-        for cam in self.cameras:
-            cam.GainAuto.SetValue("Continuous")
-
-    def setAutoWhiteBalance(self):
-        """To set AutoWhiteBalance in Continuous Mode
-        """
-        for cam in self.cameras:
-            cam.BalanceWhiteAuto.SetValue("Continuous")
+    #
+    # def ROI(self, width, height, offsetX, offsetY):
+    #     """ROI is like a square(define by width and height)
+    #     #moving by offset settings (define by OffsetX and OffsetY)
+    #     #For Auto - Brightness/WithBalance/Gain adjust ON THE ROI
+    #     #settings GainAuto and BalanceWhitAuto MUST be set in Continuous mode
+    #     """
+    #     Camera.setAutoGain(self)
+    #     Camera.setAutoWhiteBalance(self)
+    #
+    #     for cam in self.cameras:
+    #
+    #         # Define correct target AutoTargetBrightness.
+    #         # It's the target goal for image settings quality.
+    #         # Must be set between [0.19608 to 0.80392]
+    #         # cam.AutoTargetBrightness.SetValue(AutoTargetBrightnessValue)
+    #
+    #         # select the ROI1. You can use two ROI, (ROI1 and ROI2)
+    #         cam.AutoFunctionROISelector.SetValue("ROI1")
+    #
+    #         # ROI is like a square(define by width and height)
+    #         # moving by offset settings (define by OffsetX and OffsetY)
+    #
+    #         # Set the square Width
+    #         cam.AutoFunctionROIWidth.SetValue(width)
+    #         # Set the square Height
+    #         cam.AutoFunctionROIHeight.SetValue(height)
+    #         # Set the OffsetX
+    #         cam.AutoFunctionROIOffsetX.SetValue(offsetX)
+    #         # Set the Offsety
+    #         cam.AutoFunctionROIOffsetY.SetValue(offsetY)
+    #
+    #         # Set auto adjust Brightness and WhiteBalance in Continuous Mode, for the ROI's
+    #         cam.AutoFunctionROIUseBrightness.SetValue(1)
+    #         cam.AutoFunctionROIUseWhiteBalance.SetValue(1)
+    #
+    # def setAutoExposure(self):
+    #     """To set Auto Exposure in Continuous Mode
+    #     """
+    #     for cam in self.cameras:
+    #         cam.ExposureAuto.SetValue("Continuous")
+    #
+    # def setAutoGain(self):
+    #     """To set Auto Gain in Continuous Mode
+    #     """
+    #     for cam in self.cameras:
+    #         cam.GainAuto.SetValue("Continuous")
+    #
+    # def setAutoWhiteBalance(self):
+    #     """To set AutoWhiteBalance in Continuous Mode
+    #     """
+    #     for cam in self.cameras:
+    #         cam.BalanceWhiteAuto.SetValue("Continuous")
 
     def grabImage(self):
         """Grab an image from the camera, ONE-BY-ONE MODE"""
@@ -208,6 +209,10 @@ class Camera:
             # print("Gray value of first pixel: ", img[0, 0])
             # img = cv2.cvtColor(img, cv2.COLOR_BAYER_RG2RGB)
 
+            # If image is properly acquired, fix it (for the VT Camera)
+            if self.ip == settings.CAMERA_HZ_IP:
+                img = np.flipud(img)
+
             # Output status and return image
             end_t = time.time()
             # logger.debug("Image grabbing time: %.02f" % (end_t - start_t))
@@ -234,6 +239,8 @@ class Camera:
         curtime = curtime.replace(".", "-")
         if not name:
             name = self.ip.replace(".", "-")
+        if self.ip == settings.CAMERA_HZ_IP:
+            name += "F"
         path = os.path.join(settings.GRAB_PATH, "" + curtime + "-CAM" + name + ".png")
 
         # convert image to good RGB pixel format
