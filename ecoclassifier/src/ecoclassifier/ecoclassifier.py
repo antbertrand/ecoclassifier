@@ -99,6 +99,7 @@ class Ecoclassifier(object):
         PRELIMINARY WORK MODE: we don't take any picture, we just say we can't recognise.
         """
         # Tell PLC we're starting to read
+        start_t = time.time()
         self.send_plc_answer(settings.PLC_ANSWER_MATERIAL_READ_START)
         try:
             # Grab+Save images and return "we don't know"
@@ -111,6 +112,15 @@ class Ecoclassifier(object):
 
         finally:
             self.send_plc_answer(settings.PLC_ANSWER_MATERIAL_READ_DONE)
+
+        # Indicate time
+        end_t = time.time()
+        logger.info(
+            "%sMATERIAL: %s Reading took %.2f sec end-to-end",
+            bcolors.SUCCESS,
+            bcolors.NONE,
+            end_t - start_t,
+        )
 
     def take_images(self, save=False):
         """Will take n pictures and return a dict:
