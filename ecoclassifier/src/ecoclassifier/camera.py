@@ -211,7 +211,8 @@ class Camera:
 
             # If image is properly acquired, fix it (for the VT Camera)
             if self.ip == settings.CAMERA_HZ_IP:
-                img = np.flipud(img)
+                # img = np.flipud(img)
+                img = np.rot90(img, 2)
 
             # Output status and return image
             end_t = time.time()
@@ -240,7 +241,7 @@ class Camera:
         if not name:
             name = self.ip.replace(".", "-")
         if self.ip == settings.CAMERA_HZ_IP:
-            name += "F"
+            name += "G"
         path = os.path.join(settings.GRAB_PATH, "" + curtime + "-CAM" + name + ".png")
 
         # convert image to good RGB pixel format
