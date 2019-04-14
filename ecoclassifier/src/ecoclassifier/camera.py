@@ -56,7 +56,7 @@ class Camera:
         # Get all attached devices and exit application if no device is found.
         self.devices = self.tlFactory.EnumerateDevices()
         if len(self.devices) == 0:
-            raise pylon.RUNTIME_EXCEPTION("No camera present.")
+            raise py.RUNTIME_EXCEPTION("No camera present.")
         else:
             logger.debug("%d cameras found.", len(self.devices))
 
