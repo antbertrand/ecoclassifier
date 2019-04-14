@@ -29,7 +29,6 @@ import tenacity
 import cv2
 import imutils
 
-# pylint: disable=F403
 from . import settings
 from . import plc
 from .camera import Camera
