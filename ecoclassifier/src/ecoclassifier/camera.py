@@ -241,7 +241,7 @@ class Camera:
         if not name:
             name = self.ip.replace(".", "-")
         if self.ip == settings.CAMERA_HZ_IP:
-            name += "H"
+            name += "I"
         if self.ip == settings.CAMERA_VT_IP:
             name += "H"
         path = os.path.join(settings.GRAB_PATH, "" + curtime + "-CAM" + name + ".png")

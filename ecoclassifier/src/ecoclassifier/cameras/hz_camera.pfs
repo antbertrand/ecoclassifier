@@ -11,9 +11,9 @@ BlackLevelSelector	All
 GammaEnable	1
 GammaSelector	sRGB
 DigitalShift	0
-PixelFormat	BayerGB8
+PixelFormat	BayerRG8
 ReverseX	0
-ReverseY	1
+ReverseY	0
 TestImageSelector	Off
 ColorTransformationSelector	RGBtoRGB
 LightSourceSelector	Daylight
