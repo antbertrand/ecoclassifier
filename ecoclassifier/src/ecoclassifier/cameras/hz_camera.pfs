@@ -83,7 +83,7 @@ TriggerDelayAbs	0
 TriggerSelector	FrameStart
 ExposureMode	Timed
 ExposureAuto	Off
-ExposureTimeRaw	100036
+ExposureTimeRaw	100048
 ShutterMode	Rolling
 AcquisitionFrameRateEnable	0
 AcquisitionFrameRateAbs	28.9998

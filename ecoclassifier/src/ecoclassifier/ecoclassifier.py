@@ -268,14 +268,6 @@ class Ecoclassifier(object):
             # Connect PLC
             self.client = plc.PLC(settings.PLC_ADDRESS)
 
-            # Configure cameras
-            vt_camera = Camera(ip=settings.CAMERA_VT_IP)
-            vt_camera.loadConf(settings.CAMERA_VT_SETTINGS_PATH)
-            vt_camera.detach()
-            hz_camera = Camera(ip=settings.CAMERA_HZ_IP)
-            hz_camera.loadConf(settings.CAMERA_HZ_SETTINGS_PATH)
-            hz_camera.detach()
-
             logger.debug("Entering loop!")
             while not RESTART_ME:
                 # Heartbeat
@@ -306,6 +298,16 @@ class Ecoclassifier(object):
 
 def main():
     """Main runtime"""
+    # Configure cameras
+    #vt_camera = Camera(ip=settings.CAMERA_VT_IP)
+    #vt_camera.loadConf(settings.CAMERA_VT_SETTINGS_PATH)
+    #vt_camera.detach()
+    #del vt_camera
+    hz_camera = Camera(ip=settings.CAMERA_HZ_IP)
+    hz_camera.loadConf(settings.CAMERA_HZ_SETTINGS_PATH)
+    hz_camera.detach()
+    del hz_camera
+
     ec = Ecoclassifier()
     exit(ec.run())
 
