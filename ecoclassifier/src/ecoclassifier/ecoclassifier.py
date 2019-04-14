@@ -299,10 +299,10 @@ class Ecoclassifier(object):
 def main():
     """Main runtime"""
     # Configure cameras
-    #vt_camera = Camera(ip=settings.CAMERA_VT_IP)
-    #vt_camera.loadConf(settings.CAMERA_VT_SETTINGS_PATH)
-    #vt_camera.detach()
-    #del vt_camera
+    vt_camera = Camera(ip=settings.CAMERA_VT_IP)
+    vt_camera.loadConf(settings.CAMERA_VT_SETTINGS_PATH)
+    vt_camera.detach()
+    del vt_camera
     hz_camera = Camera(ip=settings.CAMERA_HZ_IP)
     hz_camera.loadConf(settings.CAMERA_HZ_SETTINGS_PATH)
     hz_camera.detach()
