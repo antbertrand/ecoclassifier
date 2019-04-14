@@ -25,6 +25,7 @@ import logging
 # Logging configuration
 LOG_FORMAT = "[%(asctime)s] p%(process)-8s %(levelname)-8s {%(name)s:%(filename)s:%(lineno)d} - %(message)s"
 logging.basicConfig(format=LOG_FORMAT, level=logging.DEBUG)
+logging.getLogger("snap7").setLevel(logging.INFO)
 
 # Where am I
 HERE = os.path.dirname(os.path.realpath(__file__))
