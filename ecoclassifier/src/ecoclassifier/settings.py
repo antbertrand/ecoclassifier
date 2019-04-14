@@ -19,11 +19,15 @@ __maintainer__ = "Pierre-Julien Grizel"
 __email__ = "pjgrizel@numericube.com"
 __status__ = "Production"
 
+import os
 import logging
 
 # Logging configuration
 LOG_FORMAT = "[%(asctime)s] p%(process)-8s %(levelname)-8s {%(name)s:%(filename)s:%(lineno)d} - %(message)s"
 logging.basicConfig(format=LOG_FORMAT, level=logging.DEBUG)
+
+# Where am I
+HERE = os.path.dirname(os.path.realpath(__file__))
 
 # Output path
 GRAB_PATH = "/home/majurca/var/acquisitions"
@@ -117,3 +121,6 @@ CAMERA_VT_SERIALS = ()
 
 CAMERA_VT_IP = "192.168.0.31"
 CAMERA_HZ_IP = "192.168.0.32"
+
+CAMERA_VT_SETTINGS_PATH = os.path.join(HERE, "cameras", "vt_camera.pfs")
+CAMERA_HZ_SETTINGS_PATH = os.path.join(HERE, "cameras", "hz_camera.pfs")
