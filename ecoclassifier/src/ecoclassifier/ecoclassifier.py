@@ -276,7 +276,8 @@ class Ecoclassifier(object):
 
                 # Depending on the PLC status, decide what to do
                 command = self.get_plc_command()
-                logger.debug("Main loop received command: %s" % command)
+                if command != settings.PLC_COMMAND_STOP:
+                    logger.debug("Main loop received command: %s" % command)
                 if command == settings.PLC_COMMAND_STOP:
                     time.sleep(settings.MAIN_LOOP_POOLING_WAIT_SECONDS)
                 elif command == settings.PLC_COMMAND_READ_BARCODE:
