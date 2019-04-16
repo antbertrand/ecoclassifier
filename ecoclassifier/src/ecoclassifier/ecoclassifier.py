@@ -200,13 +200,9 @@ class Ecoclassifier(object):
             self.send_plc_answer(start_answer)
             barcode = BarcodeReader()
             logger.info("Starting barcode reader")
-            while (
-                self.get_plc_command()
-                in (
-                    settings.PLC_COMMAND_READ_BARCODE,
-                    settings.PLC_COMMAND_LEARN_BARCODE,
-                )
-                and not RESTART_ME
+            while self.get_plc_command() in (
+                settings.PLC_COMMAND_READ_BARCODE,
+                settings.PLC_COMMAND_LEARN_BARCODE,
             ):
                 logger.debug("Entering barcode reading loop")
                 start_frame_t = time.time()
