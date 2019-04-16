@@ -42,7 +42,7 @@ class Camera:
     ip = None
     _cam = None
 
-    def __init__(self, ip=None, grab=True):
+    def __init__(self, ip=None):
         """Initialize a camera object, grab the first camera that matches the "authorized_fullnames"
         name.
         """
@@ -70,8 +70,7 @@ class Camera:
         assert self._cam.GetDeviceInfo().GetIpAddress() == ip
 
         # Let's start the fun
-        if grab:
-            self._cam.StartGrabbing(py.GrabStrategy_LatestImageOnly)
+        self._cam.StartGrabbing(py.GrabStrategy_LatestImageOnly)
 
     def loadConf(self, path):
         """Load configuration file (NodeMap.pfs)"""
