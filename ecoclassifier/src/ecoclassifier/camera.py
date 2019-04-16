@@ -42,7 +42,7 @@ class Camera:
     ip = None
     _cam = None
 
-    def __init__(self, ip=None):
+    def __init__(self, ip=None, grab=True):
         """Initialize a camera object, grab the first camera that matches the "authorized_fullnames"
         name.
         """
@@ -67,56 +67,11 @@ class Camera:
                 logger.debug("Found camera on {}".format(ip))
                 self._cam_device = self.tlFactory.CreateDevice(device_info)
                 self._cam = py.InstantCamera(self._cam_device)
-
-        #        for i, cam in enumerate(self.cameras):
-        #            cam.Attach(self.tlFactory.CreateDevice(self.devices[i]))
-        #            if ip and cam.GetDeviceInfo().GetIpAddress() == ip:
-        #                logger.debug(
-        #                    "Using %s on %s",
-        #                    cam.GetDeviceInfo().GetFriendlyName(),
-        #                    cam.GetDeviceInfo().GetIpAddress(),
-        #               )
-        #               cam_idx = i
-        #               self.cam = self.cameras[self.cam_idx]
-        #               break
-        #           else:
-        #               logger.debug(
-        #                   "Ignoring %s on %s",
-        #                   cam.GetDeviceInfo().GetFriendlyName(),
-        #                   cam.GetDeviceInfo().GetIpAddress(),
-        #               )
-        #           print("Using device ", cam.GetDeviceInfo().GetModelName())
+        assert self._cam.GetDeviceInfo().GetIpAddress() == ip
 
         # Let's start the fun
-        # if continuous:
-        #     self.cameras[self.cam_idx].StartGrabbingMax(100)
-        # else:
-        #     # self.cameras[self.cam_idx].StartGrabbing(py.GrabStrategy_LatestImages)
-        assert self._cam.GetDeviceInfo().GetIpAddress() == ip
-        self._cam.StartGrabbing(py.GrabStrategy_LatestImageOnly)
-        # self.cameras[self.cam_idx].StartGrabbing(py.GrabStrategy_LatestImageOnly)
-        # self.cameras.PixelFormat = 'RGB8'
-
-    # def continuousGrab(self,):
-    #     """Continuously grab images
-    #     """
-    #     camera = self.cameras[self.cam_idx]
-    #     while camera.IsGrabbing():
-    #         grabResult = camera.RetrieveResult(5000, py.TimeoutHandling_ThrowException)
-    #
-    #         # Image grabbed successfully?
-    #         if grabResult.GrabSucceeded():
-    #             # Access the image data.
-    #             # print("SizeX: ", grabResult.Width)
-    #             # print("SizeY: ", grabResult.Height)
-    #             img = grabResult.Array
-    #             grabResult.Release()
-    #             yield img
-    #             # print("Gray value of first pixel: ", img[0, 0])
-    #         else:
-    #             logger.debug(
-    #                 "%s / %s" % (grabResult.ErrorCode, grabResult.ErrorDescription)
-    #             )
+        if grab:
+            self._cam.StartGrabbing(py.GrabStrategy_LatestImageOnly)
 
     def loadConf(self, path):
         """Load configuration file (NodeMap.pfs)"""
@@ -125,60 +80,6 @@ class Camera:
     def saveConf(self, path):
         """Save camera status to NodeMap.pfs"""
         py.FeaturePersistence.Save(path, self._cam.GetNodeMap())
-
-    #
-    # def ROI(self, width, height, offsetX, offsetY):
-    #     """ROI is like a square(define by width and height)
-    #     #moving by offset settings (define by OffsetX and OffsetY)
-    #     #For Auto - Brightness/WithBalance/Gain adjust ON THE ROI
-    #     #settings GainAuto and BalanceWhitAuto MUST be set in Continuous mode
-    #     """
-    #     Camera.setAutoGain(self)
-    #     Camera.setAutoWhiteBalance(self)
-    #
-    #     for cam in self.cameras:
-    #
-    #         # Define correct target AutoTargetBrightness.
-    #         # It's the target goal for image settings quality.
-    #         # Must be set between [0.19608 to 0.80392]
-    #         # cam.AutoTargetBrightness.SetValue(AutoTargetBrightnessValue)
-    #
-    #         # select the ROI1. You can use two ROI, (ROI1 and ROI2)
-    #         cam.AutoFunctionROISelector.SetValue("ROI1")
-    #
-    #         # ROI is like a square(define by width and height)
-    #         # moving by offset settings (define by OffsetX and OffsetY)
-    #
-    #         # Set the square Width
-    #         cam.AutoFunctionROIWidth.SetValue(width)
-    #         # Set the square Height
-    #         cam.AutoFunctionROIHeight.SetValue(height)
-    #         # Set the OffsetX
-    #         cam.AutoFunctionROIOffsetX.SetValue(offsetX)
-    #         # Set the Offsety
-    #         cam.AutoFunctionROIOffsetY.SetValue(offsetY)
-    #
-    #         # Set auto adjust Brightness and WhiteBalance in Continuous Mode, for the ROI's
-    #         cam.AutoFunctionROIUseBrightness.SetValue(1)
-    #         cam.AutoFunctionROIUseWhiteBalance.SetValue(1)
-    #
-    # def setAutoExposure(self):
-    #     """To set Auto Exposure in Continuous Mode
-    #     """
-    #     for cam in self.cameras:
-    #         cam.ExposureAuto.SetValue("Continuous")
-    #
-    # def setAutoGain(self):
-    #     """To set Auto Gain in Continuous Mode
-    #     """
-    #     for cam in self.cameras:
-    #         cam.GainAuto.SetValue("Continuous")
-    #
-    # def setAutoWhiteBalance(self):
-    #     """To set AutoWhiteBalance in Continuous Mode
-    #     """
-    #     for cam in self.cameras:
-    #         cam.BalanceWhiteAuto.SetValue("Continuous")
 
     def grabImage(self):
         """Grab an image from the camera, ONE-BY-ONE MODE"""
