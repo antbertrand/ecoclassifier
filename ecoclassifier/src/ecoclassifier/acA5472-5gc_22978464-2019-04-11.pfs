@@ -3,7 +3,7 @@
 # Device = Basler::GigECamera -- Basler generic GigEVision camera interface -- Device version = 3.8.0 -- Product GUID = 1F3C6A72-7842-4edd-9130-E2E90A2058BA -- Product version GUID = FA6C822C-8026-4366-87BA-BD7B1BCAE752
 GainAuto	Off
 GainSelector	All
-GainRaw	0
+GainRaw	1677
 GainSelector	All
 BlackLevelSelector	All
 BlackLevelRaw	0
@@ -16,7 +16,7 @@ ReverseX	0
 ReverseY	1
 TestImageSelector	Off
 ColorTransformationSelector	RGBtoRGB
-LightSourceSelector	Daylight
+LightSourceSelector	Daylight6500K
 ColorTransformationSelector	RGBtoRGB
 BalanceWhiteAuto	Off
 BalanceRatioSelector	Red
