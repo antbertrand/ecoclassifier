@@ -1,12 +1,12 @@
 # Travis CI continuous integration management
 # mandatory for pip3 usage
 sudo: false
-dist: trusty
+dist: xenial
 
 # language
 language: python
 python:
-  - "3.6"
+  - "3.7"
 
 env:
     - DOCKER_COMPOSE_VERSION=1.23.2 DEPLOY_ENV=dev
