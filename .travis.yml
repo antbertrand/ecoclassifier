@@ -32,6 +32,9 @@ before_install:
     # Gather various information about our environment, useful for debugging
     #- dmake stack --container=ecoclassifier exec pip freeze
 
+install:
+  - pip install -r ./ecoclassifier/requirements.txt
+
 # Run tests against the development stack.
 # Don't forget to run tests for all your environments!
 script:
