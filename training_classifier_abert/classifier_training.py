@@ -7,7 +7,7 @@ from PIL import Image
 
 import matplotlib.pyplot as plt
 
-#yolo
+
 import pandas as pd
 import numpy as np
 
@@ -34,7 +34,8 @@ from sklearn.metrics import accuracy_score
 
 
 
-
+def test():
+    return True
 
 def getData():
     """ Function getData() uses the JSON info to select the dataset
