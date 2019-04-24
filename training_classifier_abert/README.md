@@ -2,12 +2,17 @@
 
 Classification of different types of plastic.
 
+## Getting Started
 
-## Downloading the dataset
+
+To test the classification on some images, clone this repo on your machine
+
+
+### Downloading the dataset
 
 The dataset is often updated. These instuctions will get you the dataset with the latest images :
 
-### DL / Install the cloudlabel client
+#### DL / Install the cloudlabel client
 
 Cloudlabel is an interactive client where the labeling is done. We will use it to download the dataset.
 
@@ -20,7 +25,7 @@ pip install -r ./requirements.txt
 pip install -e .
 ```
 
-### DL the dataset
+#### DL the dataset
 
 ```
 cd <target directory>
@@ -28,61 +33,53 @@ cloudlabel-cli --project majurca-ecoclassifier --api-url=http://52.143.156.104/a
 # Wait a bit if it download gets stuck. Try again if error : "cannot join current thread".
 ```
 
-To test the classification on some images, clone this repo on your machine
 
+### Downloading the trained models (.h5 files)
 
-
-
-## Downloading the trained models (.h5 files)
-
-The models are stored on an Azure blob storage. 
+The models are stored on an Azure blob storage.
 Connect to it with Microsoft Azure Explorer, with the Shared Access Signature URL :
 
 *https://majurca.blob.core.windows.net/weights?st=2019-04-23T07%3A40%3A38Z&se=2020-04-24T07%3A40%3A00Z&sp=rwdl&sv=2018-03-28&sr=c&sig=iNQADtLxJF%2Fs9H1NXG%2BM2qCFKhHF8I5pVgY175yE0XE%3D*
+
 
 ### Prerequisites
 
 What things you need to run the classification program:
 
 * [Keras](https://www.pyimagesearch.com/2016/11/14/installing-keras-with-tensorflow-backend/) - The deep learning library used
-* [Pandas](https://pandas.pydata.org/pandas-docs/stable/install.html) 
+* [Pandas](https://pandas.pydata.org/pandas-docs/stable/install.html)
 * [Scikit-learn](https://scikit-learn.org/stable/install.html)
 
 
-
-## Running the tests
-
-Explain how to run the automated tests for this system
-
-### Break down into end to end tests
-
-Explain what these tests test and why
-
-```
-Give an example
-```
-
-### And coding style tests
-
-Explain what these tests test and why
-
-```
-Give an example
-```
-
-## Deployment
-
-Add additional notes about how to deploy this on a live system
-
-## Built With
-
-* [Dropwizard](http://www.dropwizard.io/1.0.2/docs/) - The web framework used
-* [Maven](https://maven.apache.org/) - Dependency Management
-* [ROME](https://rometools.github.io/rome/) - Used to generate RSS Feeds
+<br /><br />
 
 
-## Authors
-
-* **Billie Thompson** - *Initial work* - [PurpleBooth](https://github.com/PurpleBooth)
 
 
+
+
+
+## Model evaluation
+
+The models are evaluated on an holdout Test set.
+
+## DIfferent architectures performances comparison on the 3 classes classification
+
+Networks                      | AlexNet     |     VGG16   |     InceptionV3   |   Not pretrained Simple CNN
+------------------------------|-------------|-------------|-------------------|-----------------------------
+Global Accuracy               |   ?         |   96,6%     |   92,4%           |     90,1%
+Number of params                    |     61M     |     138M    |     23M    | ?
+Prediction time, single image (CPU) |   ? (faster than vgg16)   |   0.64s   |   ?   | 0.07s
+
+## Results with VGG16
+
+#### 3 classes : godet-vide vs pet-clair vs pet-fonce
+
+![confmat_3classes](screenshots/confmat_3class.jpg)
+
+<br />
+<br />
+
+#### 4 classes : godet-vide vs pe-hd-opaque vs pet-clair vs pet-fonce
+
+![confmat_4classes](screenshots/confmat_4class.jpg)
