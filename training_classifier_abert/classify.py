@@ -15,11 +15,14 @@ def classify(im,model):
 
     Parameters:
     im: nummpy array
-        THe image to classify
+        The image to classify
 
     Returns:
     classe[0] : int
-        in [0, 1, 2] corresponding to ['godet-vide', 'pet-clair', 'pet-fonce'] 
+        in [0, 1, 2] corresponding to ['godet-vide', 'pet-clair', 'pet-fonce']
+	or 
+	in [0, 1, 2, 3] corresponding to ['godet-vide', 'pe-hd-opaque','pet-clair', 'pet-fonce']
+	depending on which trained model is used.
 
    """
 
