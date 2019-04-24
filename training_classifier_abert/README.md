@@ -31,6 +31,8 @@ cloudlabel-cli --project majurca-ecoclassifier --api-url=http://52.143.156.104/a
 To test the classification on some images, clone this repo on your machine
 
 
+
+
 ## Downloading the trained models (.h5 files)
 
 The models are stored on an Azure blob storage. 
