@@ -22,6 +22,7 @@ def classify(im,model):
         in [0, 1, 2] corresponding to ['godet-vide', 'pet-clair', 'pet-fonce']
 	or 
 	in [0, 1, 2, 3] corresponding to ['godet-vide', 'pe-hd-opaque','pet-clair', 'pet-fonce']
+	
 	depending on which trained model is used.
 
    """
@@ -40,7 +41,7 @@ def main():
     HEIGHT = 224
     WIDTH = 224
 
-    model = load_model('vgg16_v3.h5')
+    model = load_model('vide_petc_petf-vgg16-20190423141400.h5')
 
     im_path = './dataset/wsEN4iv2SliFUuYNXIM-5Q_0b9FT9bgTKSFE4NaMtMCwA_320x200.png'
 
