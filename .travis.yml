@@ -1,12 +1,12 @@
 # Travis CI continuous integration management
 # mandatory for pip3 usage
 sudo: false
-dist: trusty
+dist: xenial
 
 # language
 language: python
 python:
-  - "3.6"
+  - "3.7"
 
 env:
     - DOCKER_COMPOSE_VERSION=1.23.2 DEPLOY_ENV=dev
@@ -27,15 +27,18 @@ before_install:
     - dmake --version
 
     # Start our development stack
-    - dmake -v stack start --detach
+    #- dmake -v stack start --detach
 
     # Gather various information about our environment, useful for debugging
-    - dmake stack --container=ecoclassifier exec pip freeze
+    #- dmake stack --container=ecoclassifier exec pip freeze
+
+install:
+  - pip install -r ./ecoclassifier/requirements.txt
 
 # Run tests against the development stack.
 # Don't forget to run tests for all your environments!
 script:
-    - dmake -v stack --container=ecoclassifier exec py.test /ecoclassifier/
+    #- dmake -v stack --container=ecoclassifier exec py.test /ecoclassifier/
 
 # Now the build is NOT broken so we allow construction of the documentation
 # and we push to github's release.
