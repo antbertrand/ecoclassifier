@@ -26,6 +26,7 @@ pip install -e .
 cd <target directory>
 cloudlabel-cli --project majurca-ecoclassifier --api-url=http://52.143.156.104/api/v1 sync
 # Wait a bit if it download gets stuck. Try again if error : "cannot join current thread".
+```
 
 To test the classification on some images, clone this repo on your machine
 
