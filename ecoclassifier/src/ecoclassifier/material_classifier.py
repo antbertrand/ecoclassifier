@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # encoding: utf-8
 """
 classifier.py
@@ -25,6 +25,10 @@ import logging
 import base64
 
 from azure.storage.blob import BlockBlobService
+from keras.models import load_model
+
+import numpy as np
+import cv2
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -42,6 +46,43 @@ class MaterialClassifier(object):
     """This is the main classifier model, taking care of downloading additional data if necessary
     (ie. model weights!)
     """
+
+    model = None
+
+    HEIGHT = 224
+    WIDTH = 224
+
+    CLASS_GODET_VIDE = 0
+    CLASS_PE_HD_OPAQUE = 1
+    CLASS_PET_CLAIR = 2
+    CLASS_PET_FONCE = 3
+    # in [0, 1, 2, 3] corresponding to ['godet-vide', 'pe-hd-opaque','pet-clair', 'pet-fonce']
+
+    def classify(self, image):
+        """Predict from a NUMPY array
+        """
+        # Prepare image
+        img_target = cv2.resize(
+            image, dsize=(self.HEIGHT, self.WIDTH), interpolation=cv2.INTER_CUBIC
+        )
+        img_target = np.expand_dims(
+            img_target, axis=0
+        )  # correct shape for classification
+
+        # Classify it
+        klass = self.model.predict(img_target)
+        klass = klass.argmax(axis=-1)  # taking index of the maximum %
+        return klass[0]
+
+    # model = load_model('vgg16_v3.h5')
+    #
+    # im_path = './dataset/wsEN4iv2SliFUuYNXIM-5Q_0b9FT9bgTKSFE4NaMtMCwA_320x200.png'
+    #
+    # img = image.load_img(im_path, target_size=(HEIGHT, WIDTH)) #resize
+    # img = image.img_to_array(img)
+    # img = np.expand_dims(img, axis=0)# correct shape for classification
+    #
+    # print(classify(img,model))
 
     @staticmethod
     def _read_file_md5(fname):
@@ -95,3 +136,6 @@ class MaterialClassifier(object):
                 blob_name=MODEL_BLOB,
                 file_path=model_path,
             )
+
+        # Load model
+        self.model = load_model(model_path)

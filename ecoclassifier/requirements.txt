@@ -7,6 +7,9 @@ pyzbar
 numpy
 imutils
 
+# AI stuff
+tensorflow==1.13.1
+
 # Useful packages
 timeout-decorator==0.4.1
 tenacity==5.0.3

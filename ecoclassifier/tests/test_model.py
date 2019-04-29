@@ -19,11 +19,19 @@ __maintainer__ = "Pierre-Julien Grizel"
 __email__ = "pjgrizel@numericube.com"
 __status__ = "Production"
 
+import os
+
+import cv2
+
+import ecoclassifier
+from ecoclassifier.material_classifier import MaterialClassifier
+
+HERE = os.path.dirname(os.path.realpath(__file__))
+
 
 def test_model_init():
     """Just test that I can test the model (!)
     """
-    import ecoclassifier
-    from ecoclassifier.material_classifier import MaterialClassifier
-
     classifier = MaterialClassifier()
+    img = cv2.imread("2019-04-05-09-51-29-998464-CAM192-168-0-31.png")
+    assert classifier.classify(img) == classifier.CLASS_PE_HD_OPAQUE
