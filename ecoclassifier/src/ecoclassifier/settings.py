@@ -31,7 +31,7 @@ logging.getLogger("snap7").setLevel(logging.INFO)
 HERE = os.path.dirname(os.path.realpath(__file__))
 
 # Output path
-GRAB_PATH = "/home/majurca/var/acquisitions"
+GRAB_PATH = "/var/majurca/acquisitions"
 
 # Loop configuration
 MAIN_LOOP_POOLING_WAIT_SECONDS = 1
