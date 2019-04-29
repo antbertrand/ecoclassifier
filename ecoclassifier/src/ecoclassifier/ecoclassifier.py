@@ -34,6 +34,7 @@ from . import plc
 from .camera import Camera
 from .barcode import BarcodeReader
 from . import bcolors
+from .material_classifier import MaterialClassifier
 
 # Automatic restart variable and signal
 RESTART_ME = False
@@ -65,6 +66,14 @@ logger.info("Starting Ecoclassifier module.")
 class Ecoclassifier(object):
     """Main singleton for our Ecoclassifier program
     """
+
+    classifier = None
+
+    def __init__(self,):
+        """Global initialization
+        """
+        logger.info("Initializing Ecoclassifier singleton")
+        self.classifier = MaterialClassifier()
 
     def heartbeat(self,):
         """Provide a simple heartbeat
@@ -100,17 +109,37 @@ class Ecoclassifier(object):
         # Tell PLC we're starting to read
         start_t = time.time()
         self.send_plc_answer(settings.PLC_ANSWER_MATERIAL_READ_START)
+        is_empty = False
         try:
-            # Grab+Save images and return "we don't know"
-            self.take_images(save=True)
+            # Grab+Save images
+            images = self.take_images(save=True)
+
+            # Analyze material
+            material = self.classifier.classify(images["vt_image"])
+            if material == self.classifier.CLASS_GODET_VIDE:
+                is_empty = True
+                code = settings.MATERIAL_CODE_UNKNOWN
+            elif material == self.classfifier.CLASS_PET_CLAIR:
+                code = settings.MATERIAL_CODE_PET_CLAIR
+            elif material == self.classifier.CLASS_PET_FONCE:
+                code = settings.MATERIAL_CODE_PET_FONCE
+            elif material == self.classifier.CLASS_PE_HD_OPAQUE:
+                code = settings.MATERIAL_CODE_PE_HD_OPAQUE
+            else:
+                code = settings.MATERIAL_CODE_UNKNOWN
+
+            # Return what we've read
             self.client.write(
                 settings.PLC_TABLE_MATERIAL_CONTENT_WRITE,
                 settings.PLC_TABLE_MATERIAL_CONTENT_INDEX,
-                settings.MATERIAL_CODE_UNKNOWN,
+                code,
             )
 
         finally:
-            self.send_plc_answer(settings.PLC_ANSWER_MATERIAL_READ_DONE)
+            if is_empty:
+                self.send_plc_answer(settings.PLC_ANSWER_MATERIAL_EMPTY)
+            else:
+                self.send_plc_answer(settings.PLC_ANSWER_MATERIAL_READ_DONE)
 
         # Indicate time
         end_t = time.time()
