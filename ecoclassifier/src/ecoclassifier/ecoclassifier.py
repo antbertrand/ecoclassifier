@@ -73,7 +73,23 @@ class Ecoclassifier(object):
         """Global initialization
         """
         logger.info("Initializing Ecoclassifier singleton")
+
+        # Load Keras classifier
         self.classifier = MaterialClassifier()
+
+        # Load camera settings
+        logger.info("Loading cameras configurations")
+        vt_camera = Camera(ip=settings.CAMERA_VT_IP)
+        vt_camera.loadConf(settings.CAMERA_VT_SETTINGS_PATH)
+        vt_camera.detach()
+        del vt_camera
+        hz_camera = Camera(ip=settings.CAMERA_HZ_IP)
+        hz_camera.loadConf(settings.CAMERA_HZ_SETTINGS_PATH)
+        hz_camera.detach()
+        del hz_camera
+
+        # Connect PLC
+        self.client = plc.PLC(settings.PLC_ADDRESS)
 
     def heartbeat(self,):
         """Provide a simple heartbeat
@@ -281,23 +297,6 @@ class Ecoclassifier(object):
             # If we are in training mode, capture the whole content too (very convenient)
             if detected and start_answer == settings.PLC_ANSWER_BARCODE_LEARN_START:
                 self.learn_material(silent=True)
-
-    def __init__(self,):
-        """Prepare basic stuff
-        """
-        # Load camera settings
-        logger.info("Loading cameras configurations")
-        vt_camera = Camera(ip=settings.CAMERA_VT_IP)
-        vt_camera.loadConf(settings.CAMERA_VT_SETTINGS_PATH)
-        vt_camera.detach()
-        del vt_camera
-        hz_camera = Camera(ip=settings.CAMERA_HZ_IP)
-        hz_camera.loadConf(settings.CAMERA_HZ_SETTINGS_PATH)
-        hz_camera.detach()
-        del hz_camera
-
-        # Connect PLC
-        self.client = plc.PLC(settings.PLC_ADDRESS)
 
     @tenacity.retry(
         wait=tenacity.wait_exponential(multiplier=1, min=1, max=3),
