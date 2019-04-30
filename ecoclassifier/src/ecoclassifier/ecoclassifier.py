@@ -126,6 +126,7 @@ class Ecoclassifier(object):
         start_t = time.time()
         self.send_plc_answer(settings.PLC_ANSWER_MATERIAL_READ_START)
         is_empty = False
+        code = 0
         try:
             # Grab+Save images
             images = self.take_images(save=True)
@@ -161,8 +162,9 @@ class Ecoclassifier(object):
         # Indicate time
         end_t = time.time()
         logger.info(
-            "%sMATERIAL: %s Reading took %.2f sec end-to-end",
+            "%sMATERIAL (%s): %s Reading took %.2f sec end-to-end",
             bcolors.SUCCESS,
+            code,
             bcolors.NONE,
             end_t - start_t,
         )
