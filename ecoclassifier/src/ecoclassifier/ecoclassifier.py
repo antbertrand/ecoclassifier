@@ -113,9 +113,10 @@ class Ecoclassifier(object):
         try:
             # Grab+Save images
             images = self.take_images(save=True)
+            vt_image = cv2.cvtColor(images["vt_image"], cv2.COLOR_BAYER_RG2RGB)
 
             # Analyze material
-            material = self.classifier.classify(images["vt_image"])
+            material = self.classifier.classify(vt_image)
             if material == self.classifier.CLASS_GODET_VIDE:
                 is_empty = True
                 code = settings.MATERIAL_CODE_UNKNOWN
@@ -281,6 +282,23 @@ class Ecoclassifier(object):
             if detected and start_answer == settings.PLC_ANSWER_BARCODE_LEARN_START:
                 self.learn_material(silent=True)
 
+    def __init__(self,):
+        """Prepare basic stuff
+        """
+        # Load camera settings
+        logger.info("Loading cameras configurations")
+        vt_camera = Camera(ip=settings.CAMERA_VT_IP)
+        vt_camera.loadConf(settings.CAMERA_VT_SETTINGS_PATH)
+        vt_camera.detach()
+        del vt_camera
+        hz_camera = Camera(ip=settings.CAMERA_HZ_IP)
+        hz_camera.loadConf(settings.CAMERA_HZ_SETTINGS_PATH)
+        hz_camera.detach()
+        del hz_camera
+
+        # Connect PLC
+        self.client = plc.PLC(settings.PLC_ADDRESS)
+
     @tenacity.retry(
         wait=tenacity.wait_exponential(multiplier=1, min=1, max=3),
         after=tenacity.after_log(logger, logging.DEBUG),
@@ -289,9 +307,7 @@ class Ecoclassifier(object):
     def run(self,):
         """Main loop."""
         try:
-            # Connect PLC
-            self.client = plc.PLC(settings.PLC_ADDRESS)
-
+            # Handle commands
             logger.debug("Entering loop!")
             while not RESTART_ME:
                 # Heartbeat
@@ -323,17 +339,7 @@ class Ecoclassifier(object):
 
 def main():
     """Main runtime"""
-    # Configure cameras
-    logger.info("Loading cameras configurations")
-    vt_camera = Camera(ip=settings.CAMERA_VT_IP)
-    vt_camera.loadConf(settings.CAMERA_VT_SETTINGS_PATH)
-    vt_camera.detach()
-    del vt_camera
-    hz_camera = Camera(ip=settings.CAMERA_HZ_IP)
-    hz_camera.loadConf(settings.CAMERA_HZ_SETTINGS_PATH)
-    hz_camera.detach()
-    del hz_camera
-
+    # Start our ecoclassifier
     ec = Ecoclassifier()
     exit(ec.run())
 
