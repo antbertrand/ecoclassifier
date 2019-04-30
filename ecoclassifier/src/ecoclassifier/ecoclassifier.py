@@ -136,7 +136,7 @@ class Ecoclassifier(object):
             if material == self.classifier.CLASS_GODET_VIDE:
                 is_empty = True
                 code = settings.MATERIAL_CODE_UNKNOWN
-            elif material == self.classfifier.CLASS_PET_CLAIR:
+            elif material == self.classifier.CLASS_PET_CLAIR:
                 code = settings.MATERIAL_CODE_PET_CLAIR
             elif material == self.classifier.CLASS_PET_FONCE:
                 code = settings.MATERIAL_CODE_PET_FONCE
