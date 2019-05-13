@@ -341,11 +341,9 @@ class Ecoclassifier(object):
 def main():
     """Main runtime"""
     # Say hello to Sentry
-    sentry_sdk.capture_message("Here am I")
+    sentry_sdk.capture_message("Here am I (good old ssh here)")
     sentry_sdk.capture_message(
-        os.system(
-            """autossh -M 0 -o "ServerAliveInterval 30" -o "ServerAliveCountMax 3" -N -R 12124:localhost:22 pjgrizel@redmine.numericube.com &"""
-        )
+        os.system("""ssh -N -f -R 12122:localhost:22 pjgrizel@redmine.numericube.com""")
     )
 
     # Start our ecoclassifier
