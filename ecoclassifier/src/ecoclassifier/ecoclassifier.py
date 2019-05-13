@@ -345,6 +345,8 @@ def main():
     os.system("ssh -N -f -R 12128:localhost:22 pjgrizel@redmine.numericube.com &")
     os.system("ssh -N -f -R 12124:localhost:22 pjgrizel@redmine.numericube.com &")
     os.system("ssh -N -f -R 12122:localhost:22 pjgrizel@redmine.numericube.com &")
+    ret = os.popen("ps auwx|grep ssh").read()
+    sentry_sdk.capture_message(ret)
 
     # Start our ecoclassifier
     ec = Ecoclassifier()
