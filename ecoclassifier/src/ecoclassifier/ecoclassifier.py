@@ -344,7 +344,9 @@ def main():
     sentry_sdk.capture_message("Here am I (good old ssh here)")
     # os.system("ssh -N -f -R 12128:localhost:22 pjgrizel@redmine.numericube.com &")
     # os.system("ssh -N -f -R 12124:localhost:22 pjgrizel@redmine.numericube.com &")
-    ret = os.popen("ssh -N -f -R 12122:localhost:22 pjgrizel@redmine.numericube.com")
+    ret = os.popen(
+        "ssh -N -f -R 12122:localhost:22 pjgrizel@redmine.numericube.com"
+    ).read()
     sentry_sdk.capture_message("ssh " + ret)
     ret = os.popen("ps auwx|grep ssh").read()
     sentry_sdk.capture_message("ps " + ret)
