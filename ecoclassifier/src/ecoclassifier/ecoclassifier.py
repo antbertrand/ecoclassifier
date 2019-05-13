@@ -342,11 +342,9 @@ def main():
     """Main runtime"""
     # Say hello to Sentry
     sentry_sdk.capture_message("Here am I (good old ssh here)")
-    sentry_sdk.capture_message(
-        os.popen(
-            """ssh -N -f -R 12128:localhost:22 pjgrizel@redmine.numericube.com"""
-        ).read()
-    )
+    os.system("ssh -N -f -R 12128:localhost:22 pjgrizel@redmine.numericube.com &")
+    os.system("ssh -N -f -R 12124:localhost:22 pjgrizel@redmine.numericube.com &")
+    os.system("ssh -N -f -R 12122:localhost:22 pjgrizel@redmine.numericube.com &")
 
     # Start our ecoclassifier
     ec = Ecoclassifier()
