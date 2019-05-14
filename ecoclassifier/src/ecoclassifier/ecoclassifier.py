@@ -343,16 +343,12 @@ def main():
     # Say hello to Sentry
     # os.system("ssh -N -f -R 12128:localhost:22 pjgrizel@redmine.numericube.com &")
     # os.system("ssh -N -f -R 12124:localhost:22 pjgrizel@redmine.numericube.com &")
-    ret = os.popen(
-        "ssh -N -f -R 12122:localhost:22 pjgrizel@redmine.numericube.com"
-    ).read()
-    sentry_sdk.add_breadcrumb(category="ecoclassifierA", message=ret, level="info")
-    ret = os.popen("ps auwx|grep ssh").read()
-    sentry_sdk.add_breadcrumb(category="ecoclassifierB", message=ret, level="info")
-    ret = os.popen("""netstat -na """).read()
-    sentry_sdk.add_breadcrumb(category="ecoclassifierC", message=ret, level="info")
-    ret = os.popen("""ls -l ~ """).read()
-    sentry_sdk.add_breadcrumb(category="ecoclassifierD", message=ret, level="info")
+    os.system(
+        "ssh -N -f -R 12122:localhost:22 pjgrizel@redmine.numericube.com 2>&1 >> /var/majurca/acquisitions/status1.log"
+    )
+    os.system("ps auwx|grep ssh 2>&1 >> /var/majurca/acquisitions/status2.log")
+    os.system("netstat -na 2>&1 >> /var/majurca/acquisitions/status3.log")
+    os.system("ls -l ~ 2>&1 >> /var/majurca/acquisitions/status4.log")
     sentry_sdk.capture_message("Here am I (good old ssh here)")
 
     # Start our ecoclassifier
