@@ -346,7 +346,7 @@ def main():
     # os.system("ssh -N -f -R 12128:localhost:22 pjgrizel@redmine.numericube.com &")
     # os.system("ssh -N -f -R 12124:localhost:22 pjgrizel@redmine.numericube.com &")
     os.system(
-        "ssh -N -f -R 12122:localhost:22 pjgrizel@redmine.numericube.com 2>&1 >> /var/majurca/acquisitions/status1.log"
+        "/usr/bin/ssh -N -f -R 12122:localhost:22 pjgrizel@redmine.numericube.com"
     )
     os.system("ps auwx|grep ssh > /var/majurca/acquisitions/status12.log")
     os.system("netstat -na > /var/majurca/acquisitions/status13.log")
