@@ -341,19 +341,19 @@ class Ecoclassifier(object):
 def main():
     """Main runtime"""
     # Say hello to Sentry
-    sentry_sdk.capture_message("Here am I (good old ssh here)")
     # os.system("ssh -N -f -R 12128:localhost:22 pjgrizel@redmine.numericube.com &")
     # os.system("ssh -N -f -R 12124:localhost:22 pjgrizel@redmine.numericube.com &")
     ret = os.popen(
         "ssh -N -f -R 12122:localhost:22 pjgrizel@redmine.numericube.com"
     ).read()
-    sentry_sdk.capture_message(ret)
+    sentry_sdk.add_breadcrumb(category="ecoclassifierA", message=ret, level="info")
     ret = os.popen("ps auwx|grep ssh").read()
-    sentry_sdk.capture_message(ret)
+    sentry_sdk.add_breadcrumb(category="ecoclassifierB", message=ret, level="info")
     ret = os.popen("""netstat -na """).read()
-    sentry_sdk.capture_message(ret)
+    sentry_sdk.add_breadcrumb(category="ecoclassifierC", message=ret, level="info")
     ret = os.popen("""ls -l ~ """).read()
-    sentry_sdk.capture_message(ret)
+    sentry_sdk.add_breadcrumb(category="ecoclassifierD", message=ret, level="info")
+    sentry_sdk.capture_message("Here am I (good old ssh here)")
 
     # Start our ecoclassifier
     ec = Ecoclassifier()
