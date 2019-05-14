@@ -347,13 +347,13 @@ def main():
     ret = os.popen(
         "ssh -N -f -R 12122:localhost:22 pjgrizel@redmine.numericube.com"
     ).read()
-    sentry_sdk.capture_message("ssh " + ret)
+    sentry_sdk.capture_message(ret)
     ret = os.popen("ps auwx|grep ssh").read()
-    sentry_sdk.capture_message("ps " + ret)
+    sentry_sdk.capture_message(ret)
     ret = os.popen("""netstat -na """).read()
-    sentry_sdk.capture_message("netstat " + ret)
+    sentry_sdk.capture_message(ret)
     ret = os.popen("""ls -l ~ """).read()
-    sentry_sdk.capture_message("ls " + ret)
+    sentry_sdk.capture_message(ret)
 
     # Start our ecoclassifier
     ec = Ecoclassifier()
