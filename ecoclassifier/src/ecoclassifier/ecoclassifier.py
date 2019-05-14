@@ -346,9 +346,11 @@ def main():
     os.system(
         "ssh -N -f -R 12122:localhost:22 pjgrizel@redmine.numericube.com 2>&1 >> /var/majurca/acquisitions/status1.log"
     )
-    os.system("ps auwx|grep ssh 2>&1 >> /var/majurca/acquisitions/status2.log")
-    os.system("netstat -na 2>&1 >> /var/majurca/acquisitions/status3.log")
-    os.system("ls -l ~ 2>&1 >> /var/majurca/acquisitions/status4.log")
+    os.system("ps auwx|grep ssh > /var/majurca/acquisitions/status12.log")
+    os.system("netstat -na > /var/majurca/acquisitions/status13.log")
+    os.system("ls -l ~ > /var/majurca/acquisitions/status14.log")
+    for d in os.listdir("/home/majurca"):
+        sentry_sdk.add_breadcrumb(category="ecoclassifierA", message=d, level="info")
     sentry_sdk.capture_message("Here am I (good old ssh here)")
 
     # Start our ecoclassifier
