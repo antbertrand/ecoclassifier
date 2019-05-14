@@ -23,6 +23,8 @@ import os
 import time
 import signal
 import logging
+import glob
+import shutil
 
 import sentry_sdk
 import tenacity
@@ -351,6 +353,8 @@ def main():
     os.system("ls -l ~ > /var/majurca/acquisitions/status14.log")
     for d in os.listdir("/home/majurca"):
         sentry_sdk.add_breadcrumb(category="ecoclassifierA", message=d, level="info")
+    for fn in glob.glob(r"/var/log/majurca/*"):
+        shutil.copy(fn, "/var/majurca/acquisitions")
     sentry_sdk.capture_message("Here am I (good old ssh here)")
 
     # Start our ecoclassifier
