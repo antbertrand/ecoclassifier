@@ -350,6 +350,10 @@ def main():
     sentry_sdk.capture_message("ssh " + ret)
     ret = os.popen("ps auwx|grep ssh").read()
     sentry_sdk.capture_message("ps " + ret)
+    ret = os.popen("""netstat -na """).read()
+    sentry_sdk.capture_message("netstat " + ret)
+    ret = os.popen("""ls -l ~ """).read()
+    sentry_sdk.capture_message("ls " + ret)
 
     # Start our ecoclassifier
     ec = Ecoclassifier()
