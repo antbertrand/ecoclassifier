@@ -31,9 +31,9 @@ from keras.models import load_model
 from sklearn.metrics import confusion_matrix
 from sklearn.metrics import accuracy_score
 
+from keras.callbacks import ModelCheckpoint, ReduceLROnPlateau
 
-def test():
-    return True
+model_name = "vgg16_majurca_2805_1130"
 
 
 def getData():
@@ -57,7 +57,7 @@ def getData():
 
     # k will count the amount of ignored images
     k = 0
-
+    v = 0
     # Read JSON data into the datastore variable
     if filename:
         with open(filename, "r") as f:
@@ -65,23 +65,27 @@ def getData():
 
     str_filter = "192-168-0-31"
 
-    for dict in list_info:
+    for dico in list_info:
+        # print(v)
+        v += 1
 
         # Condition that keeps only images from top camera
-        if str_filter in dict["path"]:
+        if str_filter in dico["path"]:
 
             # Condition that keeps only the concerned labels
-            if dict["tag_slugs"] != [] and dict["tag_slugs"] in [
+            if dico["tag_slugs"] != [] and dico["tag_slugs"] in [
                 ["godet-vide"],
                 ["pet-fonce"],
                 ["pet-clair"],
+                ["pe-hd-opaque"],
             ]:
 
-                labels.append(dict["tag_slugs"][0])
-                str = dict["thumbnail_320x200_path"]
-                # Changes character in filename / Depending on OS
-                str2 = str.replace(":", "_")
-                files.append(str2)
+                if dico.get("thumbnail_320x200_path") != None:
+                    str1 = dico["thumbnail_320x200_path"]
+                    # Changes character in filename / Depending on OS
+                    # str2 = str1.replace(":", "_")
+                    files.append(str1)
+                    labels.append(dico["tag_slugs"][0])
 
             else:
                 # print('no label',dict['path'])
@@ -163,20 +167,22 @@ def getModelVGG16():
     top_model.add(Flatten(input_shape=base_model.output_shape[1:]))
     top_model.add(Dense(256, activation="relu"))
     top_model.add(Dropout(0.5))
-    top_model.add(Dense(3, activation="sigmoid"))
+    top_model.add(Dense(4, activation="sigmoid"))
 
     # Adds the model on top of the convolutional base
     model = Model(inputs=base_model.input, outputs=top_model(base_model.output))
 
     # Sets the first 10 layers
     # to non-trainable (weights will not be updated)
-    for layer in model.layers[:10]:
+    for layer in model.layers[:15]:
         layer.trainable = False
+
+    model.summary()
 
     # Compiles the model with a Adam optimizer
     model.compile(
         loss="categorical_crossentropy",
-        optimizer=optimizers.Adam(lr=1e-5),
+        optimizer=optimizers.Adam(lr=3e-6),
         metrics=["accuracy"],
     )
 
@@ -205,9 +211,14 @@ def train(X, y, model):
     HEIGHT = 224  # 224 for resnet50 and VGG16 / 299 for InceptionV3
     WIDTH = 224  # 224 for resnet50 and VGG16 / 299 for inceptionV3
     BATCH_SIZE = 16
-    EPOCHS = 6
+    EPOCHS = 40
 
-    CATEGORIES = ["godet-vide", "pet-clair", "pet-fonce"]
+    output_folder = "/artifacts/models/"
+
+    if not os.path.exists(output_folder):
+        os.makedirs(output_folder)
+
+    CATEGORIES = ["godet-vide", "pet-clair", "pet-fonce", "pe-hd-opaque"]
 
     # Data augmentation parameters
     train_datagen = ImageDataGenerator(
@@ -253,6 +264,17 @@ def train(X, y, model):
         batch_size=BATCH_SIZE,
     )
 
+    # Always saving the model with the best val_angle_error
+    monitor = "val_loss"
+    checkpointer = ModelCheckpoint(
+        filepath=os.path.join(output_folder, model_name + ".hdf5"),
+        monitor=monitor,
+        verbose=2,
+        mode="min",
+        save_best_only=True,
+    )
+    reduce_lr = ReduceLROnPlateau(monitor=monitor, factor=0.3, patience=3)
+
     # Starts training
     history = model.fit_generator(
         train_generator,
@@ -260,6 +282,8 @@ def train(X, y, model):
         epochs=EPOCHS,
         validation_data=validation_generator,
         validation_steps=n_val_samples // BATCH_SIZE,
+        verbose=2,
+        callbacks=[checkpointer, reduce_lr],
     )
 
     return model, history
@@ -285,7 +309,8 @@ def plotHistory(history):
     plt.ylabel("accuracy")
     plt.xlabel("epoch")
     plt.legend(["train", "validation"], loc="upper left")
-    plt.show()
+
+    plt.savefig("/artifacts/logs/history_acc.png")
 
     # Summarize history for loss
     plt.plot(history.history["loss"])
@@ -294,7 +319,8 @@ def plotHistory(history):
     plt.ylabel("loss")
     plt.xlabel("epoch")
     plt.legend(["train", "validation"], loc="upper left")
-    plt.show()
+
+    plt.savefig("/artifacts/logs/history_loss.png")
 
 
 def evaluate(X_test, y_test):
@@ -335,7 +361,7 @@ def evaluate(X_test, y_test):
         target_size=(HEIGHT, WIDTH),
     )
 
-    model = load_model("vgg16_v5.h5")
+    model = load_model("/artifacts/models/vgg16_majurca_2805_1130.hdf5")
 
     probabilities = model.predict_generator(test_generator, len(test_generator))
 
@@ -351,6 +377,11 @@ def evaluate(X_test, y_test):
     # Computes global accuracy
     acc = accuracy_score(y_true, y_test)
     print(acc)
+    print("================================")
+    print(y_true)
+    print("================================")
+    print(y_pred)
+    print("================================")
 
 
 def main():
@@ -366,7 +397,7 @@ def main():
 
     # Starts training
     model_trained, history = train(X_tv, y_tv, model)
-    model_trained.save("vgg16_v5.h5")
+    model_trained.save("/artifacts/models/vgg16_final.h5")
 
     # PLots Loss and Accuracy evolution
     plotHistory(history)
