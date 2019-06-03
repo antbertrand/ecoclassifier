@@ -35,7 +35,7 @@ logger = logging.getLogger(__name__)
 logger.info("Starting Ecoclassifier module.")
 
 # Various contants
-MODEL_BLOB = "vide_pehd_petc_petf-vgg16-20192304162500.h5"
+MODEL_BLOB = "vide_pehd_petc_petf-vgg16-20190528143700.hdf5"
 MODEL_CONTAINER = "weights"
 # BLOB_SAS_URL = "https://majurca.blob.core.windows.net/?sv=2018-03-28&ss=b&srt=sco&sp=rl&se=2029-04-29T22:53:30Z&st=2019-04-29T14:53:30Z&spr=https&sig=owBhOFWBlmVIpby8B%2FSBoOrsNXLZOWxj5IsPwkLOUY4%3D"
 MODEL_CONNECTION_STRING = "BlobEndpoint=https://majurca.blob.core.windows.net/;QueueEndpoint=https://majurca.queue.core.windows.net/;FileEndpoint=https://majurca.file.core.windows.net/;TableEndpoint=https://majurca.table.core.windows.net/;SharedAccessSignature=sv=2018-03-28&ss=b&srt=sco&sp=rl&se=2029-04-29T22:53:30Z&st=2019-04-29T14:53:30Z&spr=https&sig=owBhOFWBlmVIpby8B%2FSBoOrsNXLZOWxj5IsPwkLOUY4%3D"
