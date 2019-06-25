@@ -137,10 +137,23 @@ class Cameras:
         # MUST set, TOTAL number of images to grab per camera !
         pylon = py
         start_t = time.time()
+
+        # Light up
+        if not door_open:
+            self.hz_camera.LineSelector.SetValue("Line3")
+            self.hz_camera.LineInverter.SetValue(True)
+
+        # Grab picture (VT camera, with our without light depending on condition)
         if self.vt_camera.WaitForFrameTriggerReady(
             100, pylon.TimeoutHandling_ThrowException
         ):
             self.vt_camera.ExecuteSoftwareTrigger()
+
+        # Turn the light off
+        if not door_open:
+            self.hz_camera.LineSelector.SetValue("Line3")
+            self.hz_camera.LineInverter.SetValue(True)
+
         if not door_open and self.hz_camera.WaitForFrameTriggerReady(
             100, pylon.TimeoutHandling_ThrowException
         ):
