@@ -70,6 +70,8 @@ class Ecoclassifier(object):
     """
 
     classifier = None
+    vt_camera = None
+    hz_camera = None
 
     def __init__(self,):
         """Global initialization
@@ -81,14 +83,14 @@ class Ecoclassifier(object):
 
         # Load camera settings
         logger.info("Loading cameras configurations")
-        vt_camera = Camera(ip=settings.CAMERA_VT_IP)
-        vt_camera.loadConf(settings.CAMERA_VT_SETTINGS_PATH)
-        vt_camera.detach()
-        del vt_camera
-        hz_camera = Camera(ip=settings.CAMERA_HZ_IP)
-        hz_camera.loadConf(settings.CAMERA_HZ_SETTINGS_PATH)
-        hz_camera.detach()
-        del hz_camera
+        self.vt_camera = Camera(ip=settings.CAMERA_VT_IP)
+        self.vt_camera.loadConf(settings.CAMERA_VT_SETTINGS_PATH)
+        # vt_camera.detach()
+        # del vt_camera
+        self.hz_camera = Camera(ip=settings.CAMERA_HZ_IP)
+        self.hz_camera.loadConf(settings.CAMERA_HZ_SETTINGS_PATH)
+        # hz_camera.detach()
+        # del hz_camera
 
         # Connect PLC
         self.client = plc.PLC(settings.PLC_ADDRESS)
@@ -206,26 +208,28 @@ class Ecoclassifier(object):
         hz_image = None
 
         # Take pictures camera per camera, VT first
-        vt_camera = Camera(ip=settings.CAMERA_VT_IP)
+        # vt_camera = Camera(ip=settings.CAMERA_VT_IP)
         try:
-            vt_image = vt_camera.grabImage()
+            vt_image = self.vt_camera.grabImage()
 
             # Take HZ, this will trigger lighting. WE ALSO TAKE ANOTHER VT PICTURE.
-            hz_camera = Camera(ip=settings.CAMERA_HZ_IP)
+            # hz_camera = Camera(ip=settings.CAMERA_HZ_IP)
             try:
-                hz_image = hz_camera.grabImage()
+                hz_image = self.hz_camera.grabImage()
 
             finally:
-                hz_camera.detach()
+                pass
+                # hz_camera.detach()
 
         finally:
-            vt_camera.detach()
+            pass
+            # vt_camera.detach()
 
         # Save images (TRAINING MODE ONLY)
         start_save_t = time.time()
         if save:
-            hz_camera.saveImage(hz_image)
-            vt_camera.saveImage(vt_image)
+            self.hz_camera.saveImage(hz_image)
+            self.vt_camera.saveImage(vt_image)
 
         # Performance monitoring
         end_t = time.time()
