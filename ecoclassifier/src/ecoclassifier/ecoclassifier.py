@@ -343,9 +343,6 @@ class Ecoclassifier(object):
     def run(self,):
         """Main loop."""
         try:
-            # Handle commands
-            logger.debug("Entering loop!")
-
             # Door state and flip-flop memory.
             # If door is already closed, take a picture just in case.
             door_was_open = self.is_door_opened()
@@ -355,13 +352,16 @@ class Ecoclassifier(object):
                 current_material = self.get_material(vt_image, hz_image)
 
             # Main program loop
+            logger.debug("Entering loop!")
             while not RESTART_ME:
                 # Heartbeat
                 self.heartbeat()
                 self.send_plc_answer(settings.PLC_ANSWER_MAIN_LOOP)
 
                 # The flip-flop door: did it close? If so, we read material right now.
-                if door_was_open and not self.is_door_opened():
+                if self.is_door_opened():
+                    door_was_open = True
+                elif door_was_open:
                     door_was_open = False
                     vt_image, hz_image = self.cameras.grab_images()
                     current_material = self.get_material(vt_image, hz_image)
