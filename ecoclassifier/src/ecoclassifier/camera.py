@@ -43,9 +43,6 @@ logger = logging.getLogger(__name__)
 #     logger.debug("Using device %s", cam.GetDeviceInfo().GetIpAddress())
 # cameras.StartGrabbing(py.GrabStrategy_LatestImageOnly)
 
-from imageeventprinter import ImageEventPrinter
-from .material_classifier import MaterialClassifier
-
 #
 # class ImageEventHandler(py.ImageEventHandler):
 #     """Handle grabbing events
