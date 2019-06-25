@@ -131,7 +131,7 @@ class Cameras:
         self.vt_camera = self.cameras[0]
         self.hz_camera = self.cameras[1]
 
-    def grab_images(self):
+    def grab_images(self, door_open=True):
         """Grab images from the camera, ONE-BY-ONE MODE
         Return (VT, HZ)"""
         # MUST set, TOTAL number of images to grab per camera !
@@ -145,14 +145,18 @@ class Cameras:
             self.hz_camera.ExecuteSoftwareTrigger()
             self.vt_camera.ExecuteSoftwareTrigger()
 
-        # Actually grab images
+        # Actually grab images.
+        # If door is open, only grab the VT camera
         grab1 = self.vt_camera.RetrieveResult(5000)
-        grab2 = self.hz_camera.RetrieveResult(5000)
-
-        r1, r2 = grab1.GetArray(), grab2.GetArray()
-        r2 = np.rot90(r2, 2)
+        r1 = grab1.GetArray()
         grab1.Release()
-        grab2.Release()
+        if not door_open:
+            grab2 = self.hz_camera.RetrieveResult(5000)
+            r2 = grab2.GetArray()
+            r2 = np.rot90(r2, 2)
+            grab2.Release()
+        else:
+            r2 = None
 
         # Output status and return image
         end_t = time.time()
