@@ -81,9 +81,9 @@ class Cameras:
             # The image event printer serves as sample image processing.
             # When using the grab loop thread provided by the Instant Camera object, an image event handler processing the grab
             # results must be created and registered.
-            cam.RegisterImageEventHandler(
-                ImageEventPrinter(), pylon.RegistrationMode_Append, pylon.Cleanup_Delete
-            )
+            # cam.RegisterImageEventHandler(
+            #     ImageEventPrinter(), pylon.RegistrationMode_Append, pylon.Cleanup_Delete
+            # )
 
         # Start the grabbing using the grab loop thread, by setting the grabLoopType parameter
         # to GrabLoop_ProvidedByInstantCamera. The grab results are delivered to the image event handlers.
@@ -93,6 +93,37 @@ class Cameras:
         )
         self.vt_camera = self.cameras[0]
         self.hz_camera = self.cameras[1]
+
+    def grabImages(self):
+        """Grab images from the camera, ONE-BY-ONE MODE
+        Return (VT, HZ)"""
+        # MUST set, TOTAL number of images to grab per camera !
+        pylon = py
+        start_t = time.time()
+        if self.vt_camera.WaitForFrameTriggerReady(
+            100, pylon.TimeoutHandling_ThrowException
+        ) and self.hz_camera.WaitForFrameTriggerReady(
+            100, pylon.TimeoutHandling_ThrowException
+        ):
+            self.cameraL.ExecuteSoftwareTrigger()
+            self.cameraR.ExecuteSoftwareTrigger()
+
+        grab1 = self.vt_camera.RetrieveResult(5000)
+        grab2 = self.hz_camera.RetrieveResult(5000)
+
+        r1, r2 = grab1.GetArray(), grab2.GetArray()
+        r2 = np.rot90(r2, 2)
+        grab1.Release()
+        grab2.Release()
+
+        # # If image is properly acquired, fix it (for the VT Camera)
+        # if self.ip == settings.CAMERA_HZ_IP:
+        #     img = np.rot90(img, 2)
+        #
+        # Output status and return image
+        end_t = time.time()
+        logger.debug("Image grabbing time: %.02f", (end_t - start_t))
+        return r1, r2
 
 
 class Camera:
