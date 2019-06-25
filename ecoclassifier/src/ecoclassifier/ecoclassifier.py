@@ -84,11 +84,11 @@ class Ecoclassifier(object):
         # Load camera settings
         logger.info("Loading cameras configurations")
         self.vt_camera = Camera(ip=settings.CAMERA_VT_IP)
-        self.vt_camera.loadConf(settings.CAMERA_VT_SETTINGS_PATH)
+        # self.vt_camera.loadConf(settings.CAMERA_VT_SETTINGS_PATH)
         # vt_camera.detach()
         # del vt_camera
         self.hz_camera = Camera(ip=settings.CAMERA_HZ_IP)
-        self.hz_camera.loadConf(settings.CAMERA_HZ_SETTINGS_PATH)
+        # self.hz_camera.loadConf(settings.CAMERA_HZ_SETTINGS_PATH)
         # hz_camera.detach()
         # del hz_camera
 
