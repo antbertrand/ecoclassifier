@@ -168,33 +168,34 @@ class Ecoclassifier(object):
         # Return material code
         return code
 
-    def read_material(self, code=None):
-        """Will take 2 pictures, analyze them and return result.
-        If code is set, we don't perform analysis, we just process it.
-        If it's not set, we call get_material() to take pictures and read it.
-        """
-        # Tell PLC we're starting to read
-        self.send_plc_answer(settings.PLC_ANSWER_MATERIAL_READ_START)
-        is_empty = False
-        try:
-            if code is None:
-                code = self.get_material()
-            if code is None:
-                is_empty = True
-                code = settings.MATERIAL_CODE_UNKNOWN
-
-            # Return what we've read
-            self.client.write(
-                settings.PLC_TABLE_MATERIAL_CONTENT_WRITE,
-                settings.PLC_TABLE_MATERIAL_CONTENT_INDEX,
-                code,
-            )
-
-        finally:
-            if is_empty:
-                self.send_plc_answer(settings.PLC_ANSWER_MATERIAL_EMPTY)
-            else:
-                self.send_plc_answer(settings.PLC_ANSWER_MATERIAL_READ_DONE)
+    #
+    # def read_material(self, code=None):
+    #     """Will take 2 pictures, analyze them and return result.
+    #     If code is set, we don't perform analysis, we just process it.
+    #     If it's not set, we call get_material() to take pictures and read it.
+    #     """
+    #     # Tell PLC we're starting to read
+    #     self.send_plc_answer(settings.PLC_ANSWER_MATERIAL_READ_START)
+    #     is_empty = False
+    #     try:
+    #         if code is None:
+    #             code = self.get_material()
+    #         if code is None:
+    #             is_empty = True
+    #             code = settings.MATERIAL_CODE_UNKNOWN
+    #
+    #         # Return what we've read
+    #         self.client.write(
+    #             settings.PLC_TABLE_MATERIAL_CONTENT_WRITE,
+    #             settings.PLC_TABLE_MATERIAL_CONTENT_INDEX,
+    #             code,
+    #         )
+    #
+    #     finally:
+    #         if is_empty:
+    #             self.send_plc_answer(settings.PLC_ANSWER_MATERIAL_EMPTY)
+    #         else:
+    #             self.send_plc_answer(settings.PLC_ANSWER_MATERIAL_READ_DONE)
 
     def take_images(self, save=False):
         """Will take n pictures and return a dict:
@@ -387,6 +388,7 @@ class Ecoclassifier(object):
                 # Convert and return material
                 elif command == settings.PLC_COMMAND_READ_MATERIAL:
                     self.send_plc_answer(settings.PLC_ANSWER_MATERIAL_READ_START)
+                    logger.debug("Sending material code to PLC: %s", current_material)
                     if current_material is None:
                         self.client.write(
                             settings.PLC_TABLE_MATERIAL_CONTENT_WRITE,
