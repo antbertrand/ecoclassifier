@@ -8,8 +8,8 @@ services:
             - ./settings-common.env
             - ./settings-${DEPLOY_ENV}.env
         command:
-            # - /bin/sleep 2147483647d
-            - ecoclassifier
+            - /bin/sleep 2147483647d
+            # - ecoclassifier
         network_mode: host
 
 

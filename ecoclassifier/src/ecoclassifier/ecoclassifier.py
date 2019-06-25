@@ -23,6 +23,8 @@ import os
 import time
 import signal
 import logging
+import glob
+import shutil
 
 import sentry_sdk
 import tenacity
@@ -34,6 +36,7 @@ from . import plc
 from .camera import Camera
 from .barcode import BarcodeReader
 from . import bcolors
+from .material_classifier import MaterialClassifier
 
 # Automatic restart variable and signal
 RESTART_ME = False
@@ -66,6 +69,30 @@ class Ecoclassifier(object):
     """Main singleton for our Ecoclassifier program
     """
 
+    classifier = None
+
+    def __init__(self,):
+        """Global initialization
+        """
+        logger.info("Initializing Ecoclassifier singleton")
+
+        # Load Keras classifier
+        self.classifier = MaterialClassifier()
+
+        # Load camera settings
+        logger.info("Loading cameras configurations")
+        vt_camera = Camera(ip=settings.CAMERA_VT_IP)
+        vt_camera.loadConf(settings.CAMERA_VT_SETTINGS_PATH)
+        vt_camera.detach()
+        del vt_camera
+        hz_camera = Camera(ip=settings.CAMERA_HZ_IP)
+        hz_camera.loadConf(settings.CAMERA_HZ_SETTINGS_PATH)
+        hz_camera.detach()
+        del hz_camera
+
+        # Connect PLC
+        self.client = plc.PLC(settings.PLC_ADDRESS)
+
     def heartbeat(self,):
         """Provide a simple heartbeat
         """
@@ -93,33 +120,76 @@ class Ecoclassifier(object):
             settings.PLC_TABLE_ANSWER_WRITE, settings.PLC_TABLE_ANSWER_INDEX, status
         )
 
-    def read_material(self):
-        """Will take 2 pictures, analyze them and return result.
-        PRELIMINARY WORK MODE: we don't take any picture, we just say we can't recognise.
+    def is_door_opened(self,):
+        """Return True if door is closed.
         """
-        # Tell PLC we're starting to read
-        start_t = time.time()
-        self.send_plc_answer(settings.PLC_ANSWER_MATERIAL_READ_START)
-        try:
-            # Grab+Save images and return "we don't know"
-            self.take_images(save=True)
-            self.client.write(
-                settings.PLC_TABLE_MATERIAL_CONTENT_WRITE,
-                settings.PLC_TABLE_MATERIAL_CONTENT_INDEX,
-                settings.MATERIAL_CODE_UNKNOWN,
-            )
+        return (
+            self.client.read(settings.PLC_TABLE_COMMAND_READ, settings.PLC_DOOR_INDEX)
+            == settings.PLC_DOOR_OPENED
+        )
 
-        finally:
-            self.send_plc_answer(settings.PLC_ANSWER_MATERIAL_READ_DONE)
+    def get_material(self,):
+        """Read current material (by taking pictures) and return it.
+        Return None for godet vide
+        """
+        # Grab+Save images
+        start_t = time.time()
+        images = self.take_images(save=True)
+        vt_image = cv2.cvtColor(images["vt_image"], cv2.COLOR_BAYER_RG2RGB)
+
+        # Analyze material
+        material = self.classifier.classify(vt_image)
+        if material == self.classifier.CLASS_GODET_VIDE:
+            code = None
+        elif material == self.classifier.CLASS_PET_CLAIR:
+            code = settings.MATERIAL_CODE_PET_CLAIR
+        elif material == self.classifier.CLASS_PET_FONCE:
+            code = settings.MATERIAL_CODE_PET_FONCE
+        elif material == self.classifier.CLASS_PE_HD_OPAQUE:
+            code = settings.MATERIAL_CODE_PE_HD_OPAQUE
+        else:
+            code = settings.MATERIAL_CODE_UNKNOWN
 
         # Indicate time
         end_t = time.time()
         logger.info(
-            "%sMATERIAL: %s Reading took %.2f sec end-to-end",
+            "%sMATERIAL (%s): %s Reading took %.2f sec end-to-end",
             bcolors.SUCCESS,
+            code,
             bcolors.NONE,
             end_t - start_t,
         )
+
+        # Return material code
+        return code
+
+    def read_material(self, code=None):
+        """Will take 2 pictures, analyze them and return result.
+        If code is set, we don't perform analysis, we just process it.
+        If it's not set, we call get_material() to take pictures and read it.
+        """
+        # Tell PLC we're starting to read
+        self.send_plc_answer(settings.PLC_ANSWER_MATERIAL_READ_START)
+        is_empty = False
+        try:
+            if code is None:
+                code = self.get_material()
+            if code is None:
+                is_empty = True
+                code = settings.MATERIAL_CODE_UNKNOWN
+
+            # Return what we've read
+            self.client.write(
+                settings.PLC_TABLE_MATERIAL_CONTENT_WRITE,
+                settings.PLC_TABLE_MATERIAL_CONTENT_INDEX,
+                code,
+            )
+
+        finally:
+            if is_empty:
+                self.send_plc_answer(settings.PLC_ANSWER_MATERIAL_EMPTY)
+            else:
+                self.send_plc_answer(settings.PLC_ANSWER_MATERIAL_READ_DONE)
 
     def take_images(self, save=False):
         """Will take n pictures and return a dict:
@@ -260,14 +330,24 @@ class Ecoclassifier(object):
     def run(self,):
         """Main loop."""
         try:
-            # Connect PLC
-            self.client = plc.PLC(settings.PLC_ADDRESS)
-
+            # Handle commands
             logger.debug("Entering loop!")
+
+            # Door state and flip-flop memory
+            door_was_open = self.is_door_opened()
+            current_material = settings.MATERIAL_CODE_UNKNOWN
+            # current_barcode = None
+
+            # Main program loop
             while not RESTART_ME:
                 # Heartbeat
                 self.heartbeat()
                 self.send_plc_answer(settings.PLC_ANSWER_MAIN_LOOP)
+
+                # The flip-flop door: did it close? If so, we read material right now.
+                if door_was_open and not self.is_door_opened():
+                    door_was_open = False
+                    current_material = self.get_material()
 
                 # Depending on the PLC status, decide what to do
                 command = self.get_plc_command()
@@ -282,7 +362,7 @@ class Ecoclassifier(object):
                 elif command == settings.PLC_COMMAND_LEARN_MATERIAL:
                     self.learn_material()
                 elif command == settings.PLC_COMMAND_READ_MATERIAL:
-                    self.read_material()
+                    self.read_material(current_material)
                 else:
                     raise NotImplementedError("Invalid command: {}".format(command))
 
@@ -294,17 +374,7 @@ class Ecoclassifier(object):
 
 def main():
     """Main runtime"""
-    # Configure cameras
-    logger.info("Loading cameras configurations")
-    vt_camera = Camera(ip=settings.CAMERA_VT_IP)
-    vt_camera.loadConf(settings.CAMERA_VT_SETTINGS_PATH)
-    vt_camera.detach()
-    del vt_camera
-    hz_camera = Camera(ip=settings.CAMERA_HZ_IP)
-    hz_camera.loadConf(settings.CAMERA_HZ_SETTINGS_PATH)
-    hz_camera.detach()
-    del hz_camera
-
+    # Start our ecoclassifier
     ec = Ecoclassifier()
     exit(ec.run())
 
