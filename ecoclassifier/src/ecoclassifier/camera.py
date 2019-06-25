@@ -47,11 +47,14 @@ VT_IMAGE = None
 # cameras.StartGrabbing(py.GrabStrategy_LatestImageOnly)
 
 from imageeventprinter import ImageEventPrinter
+from .material_classifier import MaterialClassifier
 
 
 class ImageEventHandler(py.ImageEventHandler):
     """Handle grabbing events
     """
+
+    classifier = MaterialClassifier()
 
     def OnImageGrabbed(self, camera, grabResult):
         """Capture image, store result
@@ -66,10 +69,13 @@ class ImageEventHandler(py.ImageEventHandler):
             print("SizeY: ", grabResult.GetHeight())
             img = grabResult.GetArray()
             print("Gray values of first row: ", img[0])
-            print()
-            print("Sleeping to simulate calculation")
-            time.sleep(1)
+
+            # Mark images as acquired
             if camera.GetDeviceInfo().GetIpAddress() == settings.CAMERA_VT_IP:
+                print("Perform material classification")
+                # classifier = MaterialClassifier()
+                material = self.classifier.classify(img)
+                print("DETECTED MATERIAL: ", material)
                 VT_IMAGE = True
             else:
                 HZ_IMAGE = True
