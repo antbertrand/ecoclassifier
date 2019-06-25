@@ -67,7 +67,7 @@ class Cameras:
         for i, cam in enumerate(self.cameras):
             cam.Attach(tlFactory.CreateDevice(devices[i]))
             cam.RegisterConfiguration(
-                pylon.SoftwareTriggerConfiguration(),
+                pylon.ConfigurationEventHandler(),
                 pylon.RegistrationMode_ReplaceAll,
                 pylon.Cleanup_Delete,
             )
