@@ -43,6 +43,8 @@ logger = logging.getLogger(__name__)
 #     logger.debug("Using device %s", cam.GetDeviceInfo().GetIpAddress())
 # cameras.StartGrabbing(py.GrabStrategy_LatestImageOnly)
 
+from imageeventprinter import ImageEventPrinter
+
 
 class Cameras:
     """Camera pair abstraction.
@@ -79,9 +81,9 @@ class Cameras:
             # The image event printer serves as sample image processing.
             # When using the grab loop thread provided by the Instant Camera object, an image event handler processing the grab
             # results must be created and registered.
-            # cam.RegisterImageEventHandler(
-            #     ImageEventPrinter(), pylon.RegistrationMode_Append, pylon.Cleanup_Delete
-            # )
+            cam.RegisterImageEventHandler(
+                ImageEventPrinter(), pylon.RegistrationMode_Append, pylon.Cleanup_Delete
+            )
 
         # Start the grabbing using the grab loop thread, by setting the grabLoopType parameter
         # to GrabLoop_ProvidedByInstantCamera. The grab results are delivered to the image event handlers.
