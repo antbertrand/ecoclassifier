@@ -33,7 +33,7 @@ import imutils
 
 from . import settings
 from . import plc
-from .camera import Camera
+from .camera import Cameras
 from .barcode import BarcodeReader
 from . import bcolors
 from .material_classifier import MaterialClassifier
@@ -132,17 +132,17 @@ class Ecoclassifier(object):
             == settings.PLC_DOOR_OPENED
         )
 
-    def get_material(self,):
+    def get_material(self, vt_image, hz_image):
         """Read current material (by taking pictures) and return it.
         Return None for godet vide
         """
         # Grab+Save images
         start_t = time.time()
-        images = self.take_images(save=True)
-        vt_image = cv2.cvtColor(images["vt_image"], cv2.COLOR_BAYER_RG2RGB)
+        # images = self.take_images(save=True)
+        converted = cv2.cvtColor(vt_image, cv2.COLOR_BAYER_RG2RGB)
 
         # Analyze material
-        material = self.classifier.classify(vt_image)
+        material = self.classifier.classify(converted)
         if material == self.classifier.CLASS_GODET_VIDE:
             code = None
         elif material == self.classifier.CLASS_PET_CLAIR:
@@ -282,7 +282,6 @@ class Ecoclassifier(object):
         # The PLC will change command status to indicate that barcode reading time is over
         detected = False
         start_t = time.time()
-        camera = Camera(ip=settings.CAMERA_VT_IP)
 
         try:
             self.send_plc_answer(start_answer)
@@ -294,11 +293,9 @@ class Ecoclassifier(object):
             ):
                 logger.debug("Entering barcode reading loop")
                 start_frame_t = time.time()
-                frame = camera.grabImage()
-                # frame = next(grabber)
+                frame = self.cameras.grab_images()[0]
 
                 # Convert to a suitable format
-                #                camera.saveImage(frame, ratio=0.5)
                 image = cv2.cvtColor(frame, cv2.COLOR_BAYER_RG2RGB)
                 #                smaller = cv2.resize(image, None, fx=0.5, fy=0.5)
 
@@ -333,9 +330,6 @@ class Ecoclassifier(object):
                 return detected
 
         finally:
-            # Free camera
-            camera.detach()
-
             # If we are in training mode, capture the whole content too (very convenient)
             if detected and start_answer == settings.PLC_ANSWER_BARCODE_LEARN_START:
                 self.learn_material(silent=True)
@@ -351,10 +345,14 @@ class Ecoclassifier(object):
             # Handle commands
             logger.debug("Entering loop!")
 
-            # Door state and flip-flop memory
+            # Door state and flip-flop memory.
+            # If door is already closed, take a picture just in case.
             door_was_open = self.is_door_opened()
             current_material = settings.MATERIAL_CODE_UNKNOWN
-            # current_barcode = None
+            self.cameras = Cameras()
+            if not self.is_door_opened():
+                vt_image, hz_image = self.cameras.grab_images()
+                current_material = self.get_material(vt_image, hz_image)
 
             # Main program loop
             while not RESTART_ME:
@@ -365,22 +363,44 @@ class Ecoclassifier(object):
                 # The flip-flop door: did it close? If so, we read material right now.
                 if door_was_open and not self.is_door_opened():
                     door_was_open = False
-                    current_material = self.get_material()
+                    vt_image, hz_image = self.cameras.grab_images()
+                    current_material = self.get_material(vt_image, hz_image)
 
                 # Depending on the PLC status, decide what to do
                 command = self.get_plc_command()
                 if command != settings.PLC_COMMAND_STOP:
                     logger.debug("Main loop received command: %s", command)
+
+                # Depending on the PLC status, decide what to do
                 if command == settings.PLC_COMMAND_STOP:
                     time.sleep(settings.MAIN_LOOP_POOLING_WAIT_SECONDS)
+
+                # Barcode management
                 elif command == settings.PLC_COMMAND_READ_BARCODE:
                     self.read_barcode()
                 elif command == settings.PLC_COMMAND_LEARN_BARCODE:
                     self.learn_barcode()
+
                 elif command == settings.PLC_COMMAND_LEARN_MATERIAL:
                     self.learn_material()
+
+                # Convert and return material
                 elif command == settings.PLC_COMMAND_READ_MATERIAL:
-                    self.read_material(current_material)
+                    self.send_plc_answer(settings.PLC_ANSWER_MATERIAL_READ_START)
+                    if current_material is None:
+                        self.client.write(
+                            settings.PLC_TABLE_MATERIAL_CONTENT_WRITE,
+                            settings.PLC_TABLE_MATERIAL_CONTENT_INDEX,
+                            settings.MATERIAL_CODE_UNKNOWN,
+                        )
+                        self.send_plc_answer(settings.PLC_ANSWER_MATERIAL_EMPTY)
+                    else:
+                        self.client.write(
+                            settings.PLC_TABLE_MATERIAL_CONTENT_WRITE,
+                            settings.PLC_TABLE_MATERIAL_CONTENT_INDEX,
+                            current_material,
+                        )
+                        self.send_plc_answer(settings.PLC_ANSWER_MATERIAL_READ_DONE)
                 else:
                     raise NotImplementedError("Invalid command: {}".format(command))
 

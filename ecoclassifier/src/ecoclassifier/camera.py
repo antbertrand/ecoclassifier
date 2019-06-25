@@ -131,7 +131,7 @@ class Cameras:
         self.vt_camera = self.cameras[0]
         self.hz_camera = self.cameras[1]
 
-    def grabImages(self):
+    def grab_images(self):
         """Grab images from the camera, ONE-BY-ONE MODE
         Return (VT, HZ)"""
         # MUST set, TOTAL number of images to grab per camera !
