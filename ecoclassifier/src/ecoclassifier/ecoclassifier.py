@@ -33,7 +33,7 @@ import imutils
 
 from . import settings
 from . import plc
-from .camera import Camera
+from .camera import Cameras
 from .barcode import BarcodeReader
 from . import bcolors
 from .material_classifier import MaterialClassifier
@@ -70,6 +70,8 @@ class Ecoclassifier(object):
     """
 
     classifier = None
+    vt_camera = None
+    hz_camera = None
 
     def __init__(self,):
         """Global initialization
@@ -81,14 +83,15 @@ class Ecoclassifier(object):
 
         # Load camera settings
         logger.info("Loading cameras configurations")
-        vt_camera = Camera(ip=settings.CAMERA_VT_IP)
-        vt_camera.loadConf(settings.CAMERA_VT_SETTINGS_PATH)
-        vt_camera.detach()
-        del vt_camera
-        hz_camera = Camera(ip=settings.CAMERA_HZ_IP)
-        hz_camera.loadConf(settings.CAMERA_HZ_SETTINGS_PATH)
-        hz_camera.detach()
-        del hz_camera
+        self.cameras = Cameras()
+        # self.vt_camera = Camera(ip=settings.CAMERA_VT_IP)
+        # self.vt_camera.loadConf(settings.CAMERA_VT_SETTINGS_PATH)
+        # vt_camera.detach()
+        # del vt_camera
+        # self.hz_camera = Camera(ip=settings.CAMERA_HZ_IP)
+        # self.hz_camera.loadConf(settings.CAMERA_HZ_SETTINGS_PATH)
+        # hz_camera.detach()
+        # del hz_camera
 
         # Connect PLC
         self.client = plc.PLC(settings.PLC_ADDRESS)
@@ -130,17 +133,16 @@ class Ecoclassifier(object):
             == settings.PLC_DOOR_OPENED
         )
 
-    def get_material(self,):
+    def get_material(self, vt_image, hz_image):
         """Read current material (by taking pictures) and return it.
         Return None for godet vide
         """
         # Grab+Save images
         start_t = time.time()
-        images = self.take_images(save=True)
-        vt_image = cv2.cvtColor(images["vt_image"], cv2.COLOR_BAYER_RG2RGB)
+        converted = cv2.cvtColor(vt_image, cv2.COLOR_BAYER_RG2RGB)
 
         # Analyze material
-        material = self.classifier.classify(vt_image)
+        material = self.classifier.classify(converted)
         if material == self.classifier.CLASS_GODET_VIDE:
             code = None
         elif material == self.classifier.CLASS_PET_CLAIR:
@@ -165,79 +167,82 @@ class Ecoclassifier(object):
         # Return material code
         return code
 
-    def read_material(self, code=None):
-        """Will take 2 pictures, analyze them and return result.
-        If code is set, we don't perform analysis, we just process it.
-        If it's not set, we call get_material() to take pictures and read it.
-        """
-        # Tell PLC we're starting to read
-        self.send_plc_answer(settings.PLC_ANSWER_MATERIAL_READ_START)
-        is_empty = False
-        try:
-            if code is None:
-                code = self.get_material()
-            if code is None:
-                is_empty = True
-                code = settings.MATERIAL_CODE_UNKNOWN
+    #
+    # def read_material(self, code=None):
+    #     """Will take 2 pictures, analyze them and return result.
+    #     If code is set, we don't perform analysis, we just process it.
+    #     If it's not set, we call get_material() to take pictures and read it.
+    #     """
+    #     # Tell PLC we're starting to read
+    #     self.send_plc_answer(settings.PLC_ANSWER_MATERIAL_READ_START)
+    #     is_empty = False
+    #     try:
+    #         if code is None:
+    #             code = self.get_material()
+    #         if code is None:
+    #             is_empty = True
+    #             code = settings.MATERIAL_CODE_UNKNOWN
+    #
+    #         # Return what we've read
+    #         self.client.write(
+    #             settings.PLC_TABLE_MATERIAL_CONTENT_WRITE,
+    #             settings.PLC_TABLE_MATERIAL_CONTENT_INDEX,
+    #             code,
+    #         )
+    #
+    #     finally:
+    #         if is_empty:
+    #             self.send_plc_answer(settings.PLC_ANSWER_MATERIAL_EMPTY)
+    #         else:
+    #             self.send_plc_answer(settings.PLC_ANSWER_MATERIAL_READ_DONE)
 
-            # Return what we've read
-            self.client.write(
-                settings.PLC_TABLE_MATERIAL_CONTENT_WRITE,
-                settings.PLC_TABLE_MATERIAL_CONTENT_INDEX,
-                code,
-            )
-
-        finally:
-            if is_empty:
-                self.send_plc_answer(settings.PLC_ANSWER_MATERIAL_EMPTY)
-            else:
-                self.send_plc_answer(settings.PLC_ANSWER_MATERIAL_READ_DONE)
-
-    def take_images(self, save=False):
-        """Will take n pictures and return a dict:
-        {
-            "hz_image": <image>,
-            "vt_image": <image>,
-        }
-        If save is True, also save images on the fly
-        """
-        start_t = time.time()
-        vt_image = None
-        hz_image = None
-
-        # Take pictures camera per camera, VT first
-        vt_camera = Camera(ip=settings.CAMERA_VT_IP)
-        try:
-            vt_image = vt_camera.grabImage()
-
-            # Take HZ, this will trigger lighting. WE ALSO TAKE ANOTHER VT PICTURE.
-            hz_camera = Camera(ip=settings.CAMERA_HZ_IP)
-            try:
-                hz_image = hz_camera.grabImage()
-
-            finally:
-                hz_camera.detach()
-
-        finally:
-            vt_camera.detach()
-
-        # Save images (TRAINING MODE ONLY)
-        start_save_t = time.time()
-        if save:
-            hz_camera.saveImage(hz_image)
-            vt_camera.saveImage(vt_image)
-
-        # Performance monitoring
-        end_t = time.time()
-        logger.info(
-            "%sIMAGE:%s Capture took %.2f sec (%.2f to save on disk)",
-            bcolors.SUCCESS,
-            bcolors.NONE,
-            end_t - start_t,
-            end_t - start_save_t,
-        )
-
-        return {"hz_image": hz_image, "vt_image": vt_image}
+    # def take_images(self, save=False):
+    #     """Will take n pictures and return a dict:
+    #     {
+    #         "hz_image": <image>,
+    #         "vt_image": <image>,
+    #     }
+    #     If save is True, also save images on the fly
+    #     """
+    #     start_t = time.time()
+    #     vt_image = None
+    #     hz_image = None
+    #
+    #     # Take pictures camera per camera, VT first
+    #     # vt_camera = Camera(ip=settings.CAMERA_VT_IP)
+    #     try:
+    #         vt_image = self.vt_camera.grabImage()
+    #
+    #         # Take HZ, this will trigger lighting. WE ALSO TAKE ANOTHER VT PICTURE.
+    #         # hz_camera = Camera(ip=settings.CAMERA_HZ_IP)
+    #         try:
+    #             hz_image = self.hz_camera.grabImage()
+    #
+    #         finally:
+    #             pass
+    #             # hz_camera.detach()
+    #
+    #     finally:
+    #         pass
+    #         # vt_camera.detach()
+    #
+    #     # Save images (TRAINING MODE ONLY)
+    #     start_save_t = time.time()
+    #     if save:
+    #         self.hz_camera.saveImage(hz_image)
+    #         self.vt_camera.saveImage(vt_image)
+    #
+    #     # Performance monitoring
+    #     end_t = time.time()
+    #     logger.info(
+    #         "%sIMAGE:%s Capture took %.2f sec (%.2f to save on disk)",
+    #         bcolors.SUCCESS,
+    #         bcolors.NONE,
+    #         end_t - start_t,
+    #         end_t - start_save_t,
+    #     )
+    #
+    #     return {"hz_image": hz_image, "vt_image": vt_image}
 
     def learn_material(self, silent=False):
         """Will take 2 pictures and keep it for later analysis.
@@ -250,7 +255,8 @@ class Ecoclassifier(object):
             self.send_plc_answer(settings.PLC_ANSWER_MATERIAL_LEARN_START)
 
         # Take pictures
-        self.take_images(save=True)
+        vt_image, hz_image = self.cameras.grab_images(self.is_door_opened())
+        self.cameras.save_images(vt_image, hz_image)
 
         # Say we're done
         if not silent:
@@ -278,7 +284,6 @@ class Ecoclassifier(object):
         # The PLC will change command status to indicate that barcode reading time is over
         detected = False
         start_t = time.time()
-        camera = Camera(ip=settings.CAMERA_VT_IP)
 
         try:
             self.send_plc_answer(start_answer)
@@ -290,11 +295,9 @@ class Ecoclassifier(object):
             ):
                 logger.debug("Entering barcode reading loop")
                 start_frame_t = time.time()
-                frame = camera.grabImage()
-                # frame = next(grabber)
+                frame = self.cameras.grab_images(self.is_door_opened())[0]
 
                 # Convert to a suitable format
-                #                camera.saveImage(frame, ratio=0.5)
                 image = cv2.cvtColor(frame, cv2.COLOR_BAYER_RG2RGB)
                 #                smaller = cv2.resize(image, None, fx=0.5, fy=0.5)
 
@@ -329,9 +332,6 @@ class Ecoclassifier(object):
                 return detected
 
         finally:
-            # Free camera
-            camera.detach()
-
             # If we are in training mode, capture the whole content too (very convenient)
             if detected and start_answer == settings.PLC_ANSWER_BARCODE_LEARN_START:
                 self.learn_material(silent=True)
@@ -344,39 +344,68 @@ class Ecoclassifier(object):
     def run(self,):
         """Main loop."""
         try:
-            # Handle commands
-            logger.debug("Entering loop!")
-
-            # Door state and flip-flop memory
+            # Door state and flip-flop memory.
+            # If door is already closed, take a picture just in case.
             door_was_open = self.is_door_opened()
             current_material = settings.MATERIAL_CODE_UNKNOWN
-            # current_barcode = None
+            if not self.is_door_opened():
+                vt_image, hz_image = self.cameras.grab_images(self.is_door_opened())
+                current_material = self.get_material(vt_image, hz_image)
 
             # Main program loop
+            logger.debug("Entering loop!")
             while not RESTART_ME:
                 # Heartbeat
                 self.heartbeat()
                 self.send_plc_answer(settings.PLC_ANSWER_MAIN_LOOP)
 
                 # The flip-flop door: did it close? If so, we read material right now.
-                if door_was_open and not self.is_door_opened():
+                if self.is_door_opened():
+                    door_was_open = True
+                elif door_was_open:
                     door_was_open = False
-                    current_material = self.get_material()
+                    vt_image, hz_image = self.cameras.grab_images(self.is_door_opened())
+                    current_material = self.get_material(vt_image, hz_image)
 
                 # Depending on the PLC status, decide what to do
                 command = self.get_plc_command()
                 if command != settings.PLC_COMMAND_STOP:
                     logger.debug("Main loop received command: %s", command)
+
+                # Depending on the PLC status, decide what to do
                 if command == settings.PLC_COMMAND_STOP:
                     time.sleep(settings.MAIN_LOOP_POOLING_WAIT_SECONDS)
+
+                # Barcode management
                 elif command == settings.PLC_COMMAND_READ_BARCODE:
                     self.read_barcode()
                 elif command == settings.PLC_COMMAND_LEARN_BARCODE:
                     self.learn_barcode()
+
                 elif command == settings.PLC_COMMAND_LEARN_MATERIAL:
                     self.learn_material()
+
+                # Convert and return material, THEN record images
                 elif command == settings.PLC_COMMAND_READ_MATERIAL:
-                    self.read_material(current_material)
+                    self.send_plc_answer(settings.PLC_ANSWER_MATERIAL_READ_START)
+                    logger.debug("Sending material code to PLC: %s", current_material)
+                    if current_material is None:
+                        self.client.write(
+                            settings.PLC_TABLE_MATERIAL_CONTENT_WRITE,
+                            settings.PLC_TABLE_MATERIAL_CONTENT_INDEX,
+                            settings.MATERIAL_CODE_UNKNOWN,
+                        )
+                        self.send_plc_answer(settings.PLC_ANSWER_MATERIAL_EMPTY)
+                    else:
+                        self.client.write(
+                            settings.PLC_TABLE_MATERIAL_CONTENT_WRITE,
+                            settings.PLC_TABLE_MATERIAL_CONTENT_INDEX,
+                            current_material,
+                        )
+                        self.send_plc_answer(settings.PLC_ANSWER_MATERIAL_READ_DONE)
+
+                    # Save images
+                    self.cameras.save_images(vt_image, hz_image)
                 else:
                     raise NotImplementedError("Invalid command: {}".format(command))
 
