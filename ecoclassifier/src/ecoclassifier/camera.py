@@ -105,8 +105,8 @@ class Cameras:
         ) and self.hz_camera.WaitForFrameTriggerReady(
             100, pylon.TimeoutHandling_ThrowException
         ):
-            self.cameraL.ExecuteSoftwareTrigger()
-            self.cameraR.ExecuteSoftwareTrigger()
+            self.hz_camera.ExecuteSoftwareTrigger()
+            self.vt_camera.ExecuteSoftwareTrigger()
 
         grab1 = self.vt_camera.RetrieveResult(5000)
         grab2 = self.hz_camera.RetrieveResult(5000)
