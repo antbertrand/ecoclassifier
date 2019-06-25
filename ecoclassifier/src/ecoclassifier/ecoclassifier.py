@@ -294,7 +294,7 @@ class Ecoclassifier(object):
             ):
                 logger.debug("Entering barcode reading loop")
                 start_frame_t = time.time()
-                frame = self.cameras.grab_images()[0]
+                frame = self.cameras.grab_images(self.is_door_opened())[0]
 
                 # Convert to a suitable format
                 image = cv2.cvtColor(frame, cv2.COLOR_BAYER_RG2RGB)
@@ -348,7 +348,7 @@ class Ecoclassifier(object):
             door_was_open = self.is_door_opened()
             current_material = settings.MATERIAL_CODE_UNKNOWN
             if not self.is_door_opened():
-                vt_image, hz_image = self.cameras.grab_images()
+                vt_image, hz_image = self.cameras.grab_images(self.is_door_opened())
                 current_material = self.get_material(vt_image, hz_image)
 
             # Main program loop
@@ -363,7 +363,7 @@ class Ecoclassifier(object):
                     door_was_open = True
                 elif door_was_open:
                     door_was_open = False
-                    vt_image, hz_image = self.cameras.grab_images()
+                    vt_image, hz_image = self.cameras.grab_images(self.is_door_opened())
                     current_material = self.get_material(vt_image, hz_image)
 
                 # Depending on the PLC status, decide what to do
