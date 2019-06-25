@@ -46,6 +46,28 @@ logger = logging.getLogger(__name__)
 from imageeventprinter import ImageEventPrinter
 
 
+class ImageEventHandler:
+    """Handle grabbing events
+    """
+
+    def OnImageGrabbed(self, camera, grabResult):
+        print("OnImageGrabbed event for device ", camera.GetDeviceInfo().GetModelName())
+
+        # Image grabbed successfully?
+        if grabResult.GrabSucceeded():
+            print("SizeX: ", grabResult.GetWidth())
+            print("SizeY: ", grabResult.GetHeight())
+            img = grabResult.GetArray()
+            print("Gray values of first row: ", img[0])
+            print()
+            print("Sleeping to simulate calculation")
+            time.sleep(1)
+        else:
+            print(
+                "Error: ", grabResult.GetErrorCode(), grabResult.GetErrorDescription()
+            )
+
+
 class Cameras:
     """Camera pair abstraction.
     Taken from https://github.com/basler/pypylon/issues/83
@@ -81,9 +103,9 @@ class Cameras:
             # The image event printer serves as sample image processing.
             # When using the grab loop thread provided by the Instant Camera object, an image event handler processing the grab
             # results must be created and registered.
-            # cam.RegisterImageEventHandler(
-            #     ImageEventPrinter(), pylon.RegistrationMode_Append, pylon.Cleanup_Delete
-            # )
+            cam.RegisterImageEventHandler(
+                ImageEventHandler(), pylon.RegistrationMode_Append, pylon.Cleanup_Delete
+            )
 
         # Start the grabbing using the grab loop thread, by setting the grabLoopType parameter
         # to GrabLoop_ProvidedByInstantCamera. The grab results are delivered to the image event handlers.
@@ -108,13 +130,13 @@ class Cameras:
             self.hz_camera.ExecuteSoftwareTrigger()
             self.vt_camera.ExecuteSoftwareTrigger()
 
-        grab1 = self.vt_camera.RetrieveResult(5000)
-        grab2 = self.hz_camera.RetrieveResult(5000)
-
-        r1, r2 = grab1.GetArray(), grab2.GetArray()
-        r2 = np.rot90(r2, 2)
-        grab1.Release()
-        grab2.Release()
+        # grab1 = self.vt_camera.RetrieveResult(5000)
+        # grab2 = self.hz_camera.RetrieveResult(5000)
+        #
+        # r1, r2 = grab1.GetArray(), grab2.GetArray()
+        # r2 = np.rot90(r2, 2)
+        # grab1.Release()
+        # grab2.Release()
 
         # # If image is properly acquired, fix it (for the VT Camera)
         # if self.ip == settings.CAMERA_HZ_IP:
