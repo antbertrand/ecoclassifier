@@ -189,7 +189,7 @@ class Cameras:
             curtime = curtime.replace(":", "-")
             curtime = curtime.replace(".", "-")
             if not name:
-                name = self.ip.replace(".", "-")
+                name = ip.replace(".", "-")
             if ip == settings.CAMERA_HZ_IP:
                 name += "K"
             if ip == settings.CAMERA_VT_IP:
