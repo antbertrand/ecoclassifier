@@ -46,7 +46,7 @@ logger = logging.getLogger(__name__)
 from imageeventprinter import ImageEventPrinter
 
 
-class ImageEventHandler:
+class ImageEventHandler(py.ImageEventHandler):
     """Handle grabbing events
     """
 
