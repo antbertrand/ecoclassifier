@@ -32,9 +32,6 @@ from . import settings
 
 logger = logging.getLogger(__name__)
 
-HZ_IMAGE = None
-VT_IMAGE = None
-
 # Initialize cameras
 # devices = None
 # cameras = None
@@ -49,40 +46,41 @@ VT_IMAGE = None
 from imageeventprinter import ImageEventPrinter
 from .material_classifier import MaterialClassifier
 
-
-class ImageEventHandler(py.ImageEventHandler):
-    """Handle grabbing events
-    """
-
-    classifier = MaterialClassifier()
-
-    def OnImageGrabbed(self, camera, grabResult):
-        """Capture image, store result
-        """
-        global HZ_IMAGE
-        global VT_IMAGE
-        print("OnImageGrabbed event for device ", camera.GetDeviceInfo().GetModelName())
-
-        # Image grabbed successfully?
-        if grabResult.GrabSucceeded():
-            print("SizeX: ", grabResult.GetWidth())
-            print("SizeY: ", grabResult.GetHeight())
-            img = grabResult.GetArray()
-            print("Gray values of first row: ", img[0])
-
-            # Mark images as acquired
-            if camera.GetDeviceInfo().GetIpAddress() == settings.CAMERA_VT_IP:
-                print("Perform material classification")
-                # classifier = MaterialClassifier()
-                material = self.classifier.classify(img)
-                print("DETECTED MATERIAL: ", material)
-                VT_IMAGE = True
-            else:
-                HZ_IMAGE = True
-        else:
-            print(
-                "Error: ", grabResult.GetErrorCode(), grabResult.GetErrorDescription()
-            )
+#
+# class ImageEventHandler(py.ImageEventHandler):
+#     """Handle grabbing events
+#     """
+#
+#     classifier = MaterialClassifier()
+#
+#     def OnImageGrabbed(self, camera, grabResult):
+#         """Capture image, store result
+#         """
+#         global HZ_IMAGE
+#         global VT_IMAGE
+#         print("OnImageGrabbed event for device ", camera.GetDeviceInfo().GetModelName())
+#
+#         # Image grabbed successfully?
+#         if grabResult.GrabSucceeded():
+#             print("SizeX: ", grabResult.GetWidth())
+#             print("SizeY: ", grabResult.GetHeight())
+#             img = grabResult.GetArray()
+#             print("Gray values of first row: ", img[0])
+#
+#             # Mark images as acquired
+#             if camera.GetDeviceInfo().GetIpAddress() == settings.CAMERA_VT_IP:
+#                 print("Perform material classification")
+#                 # classifier = MaterialClassifier()
+#                 material = self.classifier.classify(img)
+#                 print("DETECTED MATERIAL: ", material)
+#                 VT_IMAGE = True
+#             else:
+#                 HZ_IMAGE = True
+#         else:
+#             print(
+#                 "Error: ", grabResult.GetErrorCode(), grabResult.GetErrorDescription()
+#             )
+#
 
 
 class Cameras:
@@ -106,7 +104,7 @@ class Cameras:
         for i, cam in enumerate(self.cameras):
             cam.Attach(tlFactory.CreateDevice(devices[i]))
             cam.RegisterConfiguration(
-                pylon.SoftwareTriggerConfiguration(),
+                pylon.ConfigurationEventHandler(),
                 pylon.RegistrationMode_ReplaceAll,
                 pylon.Cleanup_Delete,
             )
@@ -120,15 +118,15 @@ class Cameras:
             # The image event printer serves as sample image processing.
             # When using the grab loop thread provided by the Instant Camera object, an image event handler processing the grab
             # results must be created and registered.
-            cam.RegisterImageEventHandler(
-                ImageEventHandler(), pylon.RegistrationMode_Append, pylon.Cleanup_Delete
-            )
+            # cam.RegisterImageEventHandler(
+            #     ImageEventHandler(), pylon.RegistrationMode_Append, pylon.Cleanup_Delete
+            # )
 
         # Start the grabbing using the grab loop thread, by setting the grabLoopType parameter
         # to GrabLoop_ProvidedByInstantCamera. The grab results are delivered to the image event handlers.
         # The GrabStrategy_OneByOne default grab strategy is used.
         self.cameras.StartGrabbing(
-            py.GrabStrategy_LatestImageOnly, pylon.GrabLoop_ProvidedByInstantCamera
+            py.GrabStrategy_LatestImageOnly  # pylon.GrabLoop_ProvidedByInstantCamera
         )
         self.vt_camera = self.cameras[0]
         self.hz_camera = self.cameras[1]
@@ -147,31 +145,19 @@ class Cameras:
             self.hz_camera.ExecuteSoftwareTrigger()
             self.vt_camera.ExecuteSoftwareTrigger()
 
-        # grab1 = self.vt_camera.RetrieveResult(5000)
-        # grab2 = self.hz_camera.RetrieveResult(5000)
-        #
-        # r1, r2 = grab1.GetArray(), grab2.GetArray()
-        # r2 = np.rot90(r2, 2)
-        # grab1.Release()
-        # grab2.Release()
+        # Actually grab images
+        grab1 = self.vt_camera.RetrieveResult(5000)
+        grab2 = self.hz_camera.RetrieveResult(5000)
 
-        # # If image is properly acquired, fix it (for the VT Camera)
-        # if self.ip == settings.CAMERA_HZ_IP:
-        #     img = np.rot90(img, 2)
-        #
+        r1, r2 = grab1.GetArray(), grab2.GetArray()
+        r2 = np.rot90(r2, 2)
+        grab1.Release()
+        grab2.Release()
+
         # Output status and return image
         end_t = time.time()
         logger.debug("Image grabbing time: %.02f", (end_t - start_t))
-        # return r1, r2
-
-    def set_vars(self,):
-        """Test"""
-        global HZ_IMAGE
-        global VT_IMAGE
-
-        print(HZ_IMAGE, VT_IMAGE)
-        HZ_IMAGE = False
-        VT_IMAGE = False
+        return r1, r2
 
 
 class Camera:
