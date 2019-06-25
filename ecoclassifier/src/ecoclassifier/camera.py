@@ -139,11 +139,12 @@ class Cameras:
         start_t = time.time()
         if self.vt_camera.WaitForFrameTriggerReady(
             100, pylon.TimeoutHandling_ThrowException
-        ) and self.hz_camera.WaitForFrameTriggerReady(
+        ):
+            self.vt_camera.ExecuteSoftwareTrigger()
+        if not door_open and self.hz_camera.WaitForFrameTriggerReady(
             100, pylon.TimeoutHandling_ThrowException
         ):
             self.hz_camera.ExecuteSoftwareTrigger()
-            self.vt_camera.ExecuteSoftwareTrigger()
 
         # Actually grab images.
         # If door is open, only grab the VT camera
