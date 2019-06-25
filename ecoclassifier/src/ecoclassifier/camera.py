@@ -138,7 +138,7 @@ class Cameras:
         pylon = py
         start_t = time.time()
 
-        # Light up
+        # Light on
         if not door_open:
             self.hz_camera.LineSelector.SetValue("Line3")
             self.hz_camera.LineInverter.SetValue(True)
@@ -176,6 +176,45 @@ class Cameras:
         end_t = time.time()
         logger.debug("Image grabbing time: %.02f", (end_t - start_t))
         return r1, r2
+
+    def save_images(self, vt_image, hz_image, name=None, ratio=1):
+        """Save images on the fly"""
+        for ip, frame in (
+            (settings.CAMERA_VT_IP, vt_image),
+            (settings.CAMERA_HZ_IP, hz_image),
+        ):
+            # make filename like yyyy-mm-dd-hh-mm-ss-nn-cam_id.png
+            curtime = str(datetime.datetime.today())
+            curtime = curtime.replace(" ", "-")
+            curtime = curtime.replace(":", "-")
+            curtime = curtime.replace(".", "-")
+            if not name:
+                name = self.ip.replace(".", "-")
+            if ip == settings.CAMERA_HZ_IP:
+                name += "K"
+            if ip == settings.CAMERA_VT_IP:
+                name += "H"
+            path = os.path.join(
+                settings.GRAB_PATH, "" + curtime + "-CAM" + name + ".png"
+            )
+
+            # convert image to good RGB pixel format
+            if len(frame.shape) == 2:
+                img = cv2.cvtColor(frame, cv2.COLOR_BAYER_RG2RGB)
+            else:
+                img = frame
+
+            # Fix .32 camera that behaves unpredictically when shut down
+            if ip == settings.CAMERA_HZ_IP:
+                img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+
+            # Adapt ratio if necessary
+            if ratio != 1:
+                img = cv2.resize(img, None, fx=ratio, fy=ratio)
+
+            # Save image tyo specified path
+            logger.debug("Saving %s", path)
+            cv2.imwrite(path, img)
 
 
 class Camera:

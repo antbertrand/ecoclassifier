@@ -139,7 +139,6 @@ class Ecoclassifier(object):
         """
         # Grab+Save images
         start_t = time.time()
-        # images = self.take_images(save=True)
         converted = cv2.cvtColor(vt_image, cv2.COLOR_BAYER_RG2RGB)
 
         # Analyze material
@@ -197,53 +196,53 @@ class Ecoclassifier(object):
     #         else:
     #             self.send_plc_answer(settings.PLC_ANSWER_MATERIAL_READ_DONE)
 
-    def take_images(self, save=False):
-        """Will take n pictures and return a dict:
-        {
-            "hz_image": <image>,
-            "vt_image": <image>,
-        }
-        If save is True, also save images on the fly
-        """
-        start_t = time.time()
-        vt_image = None
-        hz_image = None
-
-        # Take pictures camera per camera, VT first
-        # vt_camera = Camera(ip=settings.CAMERA_VT_IP)
-        try:
-            vt_image = self.vt_camera.grabImage()
-
-            # Take HZ, this will trigger lighting. WE ALSO TAKE ANOTHER VT PICTURE.
-            # hz_camera = Camera(ip=settings.CAMERA_HZ_IP)
-            try:
-                hz_image = self.hz_camera.grabImage()
-
-            finally:
-                pass
-                # hz_camera.detach()
-
-        finally:
-            pass
-            # vt_camera.detach()
-
-        # Save images (TRAINING MODE ONLY)
-        start_save_t = time.time()
-        if save:
-            self.hz_camera.saveImage(hz_image)
-            self.vt_camera.saveImage(vt_image)
-
-        # Performance monitoring
-        end_t = time.time()
-        logger.info(
-            "%sIMAGE:%s Capture took %.2f sec (%.2f to save on disk)",
-            bcolors.SUCCESS,
-            bcolors.NONE,
-            end_t - start_t,
-            end_t - start_save_t,
-        )
-
-        return {"hz_image": hz_image, "vt_image": vt_image}
+    # def take_images(self, save=False):
+    #     """Will take n pictures and return a dict:
+    #     {
+    #         "hz_image": <image>,
+    #         "vt_image": <image>,
+    #     }
+    #     If save is True, also save images on the fly
+    #     """
+    #     start_t = time.time()
+    #     vt_image = None
+    #     hz_image = None
+    #
+    #     # Take pictures camera per camera, VT first
+    #     # vt_camera = Camera(ip=settings.CAMERA_VT_IP)
+    #     try:
+    #         vt_image = self.vt_camera.grabImage()
+    #
+    #         # Take HZ, this will trigger lighting. WE ALSO TAKE ANOTHER VT PICTURE.
+    #         # hz_camera = Camera(ip=settings.CAMERA_HZ_IP)
+    #         try:
+    #             hz_image = self.hz_camera.grabImage()
+    #
+    #         finally:
+    #             pass
+    #             # hz_camera.detach()
+    #
+    #     finally:
+    #         pass
+    #         # vt_camera.detach()
+    #
+    #     # Save images (TRAINING MODE ONLY)
+    #     start_save_t = time.time()
+    #     if save:
+    #         self.hz_camera.saveImage(hz_image)
+    #         self.vt_camera.saveImage(vt_image)
+    #
+    #     # Performance monitoring
+    #     end_t = time.time()
+    #     logger.info(
+    #         "%sIMAGE:%s Capture took %.2f sec (%.2f to save on disk)",
+    #         bcolors.SUCCESS,
+    #         bcolors.NONE,
+    #         end_t - start_t,
+    #         end_t - start_save_t,
+    #     )
+    #
+    #     return {"hz_image": hz_image, "vt_image": vt_image}
 
     def learn_material(self, silent=False):
         """Will take 2 pictures and keep it for later analysis.
@@ -256,7 +255,8 @@ class Ecoclassifier(object):
             self.send_plc_answer(settings.PLC_ANSWER_MATERIAL_LEARN_START)
 
         # Take pictures
-        self.take_images(save=True)
+        vt_image, hz_image = self.cameras.grab_images(self.is_door_opened())
+        self.cameras.save_images(vt_image, hz_image)
 
         # Say we're done
         if not silent:
@@ -385,7 +385,7 @@ class Ecoclassifier(object):
                 elif command == settings.PLC_COMMAND_LEARN_MATERIAL:
                     self.learn_material()
 
-                # Convert and return material
+                # Convert and return material, THEN record images
                 elif command == settings.PLC_COMMAND_READ_MATERIAL:
                     self.send_plc_answer(settings.PLC_ANSWER_MATERIAL_READ_START)
                     logger.debug("Sending material code to PLC: %s", current_material)
@@ -403,6 +403,9 @@ class Ecoclassifier(object):
                             current_material,
                         )
                         self.send_plc_answer(settings.PLC_ANSWER_MATERIAL_READ_DONE)
+
+                    # Save images
+                    self.cameras.save_images(vt_image, hz_image)
                 else:
                     raise NotImplementedError("Invalid command: {}".format(command))
 
