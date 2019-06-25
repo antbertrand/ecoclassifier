@@ -135,10 +135,10 @@ class Cameras:
         pylon = py
         start_t = time.time()
 
-        # Light on
-        if not door_open:
-            self.hz_camera.LineSelector.SetValue("Line3")
-            self.hz_camera.LineInverter.SetValue(True)
+        # # Light on
+        # if not door_open:
+        #     self.hz_camera.LineSelector.SetValue("Line3")
+        #     self.hz_camera.LineInverter.SetValue(True)
 
         # Grab picture (VT camera, with our without light depending on condition)
         if self.vt_camera.WaitForFrameTriggerReady(
@@ -146,10 +146,10 @@ class Cameras:
         ):
             self.vt_camera.ExecuteSoftwareTrigger()
 
-        # Turn the light off
-        if not door_open:
-            self.hz_camera.LineSelector.SetValue("Line3")
-            self.hz_camera.LineInverter.SetValue(False)
+        # # Turn the light off
+        # if not door_open:
+        #     self.hz_camera.LineSelector.SetValue("Line3")
+        #     self.hz_camera.LineInverter.SetValue(False)
 
         if not door_open and self.hz_camera.WaitForFrameTriggerReady(
             100, pylon.TimeoutHandling_ThrowException
