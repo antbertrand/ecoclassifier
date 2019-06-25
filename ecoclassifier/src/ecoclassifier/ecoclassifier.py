@@ -124,7 +124,9 @@ class Ecoclassifier(object):
         """Return True if door is closed.
         """
         return (
-            self.client.read(settings.PLC_TABLE_COMMAND_READ, settings.PLC_DOOR_INDEX)
+            self.client.read(
+                settings.PLC_TABLE_COMMAND_READ, settings.PLC_TABLE_DOOR_INDEX
+            )
             == settings.PLC_DOOR_OPENED
         )
 
