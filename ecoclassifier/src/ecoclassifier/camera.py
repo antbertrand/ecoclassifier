@@ -70,9 +70,9 @@ class ImageEventHandler(py.ImageEventHandler):
             print("Sleeping to simulate calculation")
             time.sleep(1)
             if camera.GetDeviceInfo().GetIpAddress() == settings.CAMERA_VT_IP:
-                VT_IMAGE = img
+                VT_IMAGE = True
             else:
-                HZ_IMAGE = img
+                HZ_IMAGE = False
         else:
             print(
                 "Error: ", grabResult.GetErrorCode(), grabResult.GetErrorDescription()
@@ -114,15 +114,15 @@ class Cameras:
             # The image event printer serves as sample image processing.
             # When using the grab loop thread provided by the Instant Camera object, an image event handler processing the grab
             # results must be created and registered.
-            # cam.RegisterImageEventHandler(
-            #     ImageEventHandler(), pylon.RegistrationMode_Append, pylon.Cleanup_Delete
-            # )
+            cam.RegisterImageEventHandler(
+                ImageEventHandler(), pylon.RegistrationMode_Append, pylon.Cleanup_Delete
+            )
 
         # Start the grabbing using the grab loop thread, by setting the grabLoopType parameter
         # to GrabLoop_ProvidedByInstantCamera. The grab results are delivered to the image event handlers.
         # The GrabStrategy_OneByOne default grab strategy is used.
         self.cameras.StartGrabbing(
-            py.GrabStrategy_LatestImageOnly  # pylon.GrabLoop_ProvidedByInstantCamera
+            py.GrabStrategy_LatestImageOnly, pylon.GrabLoop_ProvidedByInstantCamera
         )
         self.vt_camera = self.cameras[0]
         self.hz_camera = self.cameras[1]
@@ -157,6 +157,15 @@ class Cameras:
         end_t = time.time()
         logger.debug("Image grabbing time: %.02f", (end_t - start_t))
         # return r1, r2
+
+    def set_vars(self,):
+        """Test"""
+        global HZ_IMAGE
+        global VT_IMAGE
+
+        print(HZ_IMAGE, VT_IMAGE)
+        HZ_IMAGE = False
+        VT_IMAGE = False
 
 
 class Camera:
