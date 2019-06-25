@@ -72,7 +72,7 @@ class ImageEventHandler(py.ImageEventHandler):
             if camera.GetDeviceInfo().GetIpAddress() == settings.CAMERA_VT_IP:
                 VT_IMAGE = True
             else:
-                HZ_IMAGE = False
+                HZ_IMAGE = True
         else:
             print(
                 "Error: ", grabResult.GetErrorCode(), grabResult.GetErrorDescription()
@@ -100,7 +100,7 @@ class Cameras:
         for i, cam in enumerate(self.cameras):
             cam.Attach(tlFactory.CreateDevice(devices[i]))
             cam.RegisterConfiguration(
-                pylon.ConfigurationEventHandler(),
+                pylon.SoftwareTriggerConfiguration(),
                 pylon.RegistrationMode_ReplaceAll,
                 pylon.Cleanup_Delete,
             )
