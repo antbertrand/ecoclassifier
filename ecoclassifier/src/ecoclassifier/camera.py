@@ -177,7 +177,7 @@ class Cameras:
         logger.debug("Image grabbing time: %.02f", (end_t - start_t))
         return r1, r2
 
-    def save_images(self, vt_image, hz_image, name=None, ratio=1):
+    def save_images(self, vt_image, hz_image, ratio=1):
         """Save images on the fly"""
         for ip, frame in (
             (settings.CAMERA_VT_IP, vt_image),
@@ -188,11 +188,10 @@ class Cameras:
             curtime = curtime.replace(" ", "-")
             curtime = curtime.replace(":", "-")
             curtime = curtime.replace(".", "-")
-            if not name:
-                name = ip.replace(".", "-")
+            name = ip.replace(".", "-")
             if ip == settings.CAMERA_HZ_IP:
                 name += "K"
-            if ip == settings.CAMERA_VT_IP:
+            elif ip == settings.CAMERA_VT_IP:
                 name += "H"
             path = os.path.join(
                 settings.GRAB_PATH, "" + curtime + "-CAM" + name + ".png"
