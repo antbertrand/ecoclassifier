@@ -32,6 +32,9 @@ from . import settings
 
 logger = logging.getLogger(__name__)
 
+HZ_IMAGE = None
+VT_IMAGE = None
+
 # Initialize cameras
 # devices = None
 # cameras = None
@@ -51,6 +54,10 @@ class ImageEventHandler(py.ImageEventHandler):
     """
 
     def OnImageGrabbed(self, camera, grabResult):
+        """Capture image, store result
+        """
+        global HZ_IMAGE
+        global VT_IMAGE
         print("OnImageGrabbed event for device ", camera.GetDeviceInfo().GetModelName())
 
         # Image grabbed successfully?
@@ -62,6 +69,10 @@ class ImageEventHandler(py.ImageEventHandler):
             print()
             print("Sleeping to simulate calculation")
             time.sleep(1)
+            if camera.GetDeviceInfo().GetIpAddress() == settings.CAMERA_VT_IP:
+                VT_IMAGE = img
+            else:
+                HZ_IMAGE = img
         else:
             print(
                 "Error: ", grabResult.GetErrorCode(), grabResult.GetErrorDescription()
@@ -145,7 +156,7 @@ class Cameras:
         # Output status and return image
         end_t = time.time()
         logger.debug("Image grabbing time: %.02f", (end_t - start_t))
-        return r1, r2
+        # return r1, r2
 
 
 class Camera:
