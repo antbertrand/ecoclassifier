@@ -83,11 +83,12 @@ class Ecoclassifier(object):
 
         # Load camera settings
         logger.info("Loading cameras configurations")
-        self.vt_camera = Camera(ip=settings.CAMERA_VT_IP)
+        self.cameras = Cameras()
+        # self.vt_camera = Camera(ip=settings.CAMERA_VT_IP)
         # self.vt_camera.loadConf(settings.CAMERA_VT_SETTINGS_PATH)
         # vt_camera.detach()
         # del vt_camera
-        self.hz_camera = Camera(ip=settings.CAMERA_HZ_IP)
+        # self.hz_camera = Camera(ip=settings.CAMERA_HZ_IP)
         # self.hz_camera.loadConf(settings.CAMERA_HZ_SETTINGS_PATH)
         # hz_camera.detach()
         # del hz_camera
@@ -349,7 +350,6 @@ class Ecoclassifier(object):
             # If door is already closed, take a picture just in case.
             door_was_open = self.is_door_opened()
             current_material = settings.MATERIAL_CODE_UNKNOWN
-            self.cameras = Cameras()
             if not self.is_door_opened():
                 vt_image, hz_image = self.cameras.grab_images()
                 current_material = self.get_material(vt_image, hz_image)
