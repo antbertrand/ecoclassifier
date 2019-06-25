@@ -23,8 +23,10 @@ import os
 import hashlib
 import logging
 import base64
+import urllib3.exceptions
 
 from azure.storage.blob import BlockBlobService
+from azure.common import AzureException
 from keras.models import load_model
 
 import numpy as np
@@ -108,18 +110,25 @@ class MaterialClassifier(object):
         download_it = True
         if os.path.isfile(model_path):
             # File exists? Retreive online md5 from Azure
-            target_blob_service = BlockBlobService(
-                connection_string=model_connection_string
-            )
-            blob = target_blob_service.get_blob_properties(
-                container_name=model_container, blob_name=model_blob
-            )
-            blob_md5 = blob.properties.content_settings.content_md5
+            try:
+                target_blob_service = BlockBlobService(
+                    connection_string=model_connection_string
+                )
+                blob = target_blob_service.get_blob_properties(
+                    container_name=model_container, blob_name=model_blob
+                )
+                blob_md5 = blob.properties.content_settings.content_md5
 
-            # Read file md5 & compare
-            file_md5 = self._read_file_md5(model_path)
-            if file_md5 == blob_md5:
-                download_it = False
+                # Read file md5 & compare
+                file_md5 = self._read_file_md5(model_path)
+                if file_md5 == blob_md5:
+                    download_it = False
+
+            except AzureException as e:
+                if isinstance(e.args[0], urllib3.exceptions.MaxRetryError):
+                    download_it = False
+                else:
+                    raise
 
         # Download if necessary
         if download_it:

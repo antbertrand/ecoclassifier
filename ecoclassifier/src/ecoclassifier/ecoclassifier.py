@@ -124,7 +124,9 @@ class Ecoclassifier(object):
         """Return True if door is closed.
         """
         return (
-            self.client.read(settings.PLC_TABLE_COMMAND_READ, settings.PLC_DOOR_INDEX)
+            self.client.read(
+                settings.PLC_TABLE_COMMAND_READ, settings.PLC_TABLE_DOOR_INDEX
+            )
             == settings.PLC_DOOR_OPENED
         )
 
@@ -199,6 +201,7 @@ class Ecoclassifier(object):
         }
         If save is True, also save images on the fly
         """
+        start_t = time.time()
         vt_image = None
         hz_image = None
 
@@ -219,9 +222,20 @@ class Ecoclassifier(object):
             vt_camera.detach()
 
         # Save images (TRAINING MODE ONLY)
+        start_save_t = time.time()
         if save:
             hz_camera.saveImage(hz_image)
             vt_camera.saveImage(vt_image)
+
+        # Performance monitoring
+        end_t = time.time()
+        logger.info(
+            "%sIMAGE:%s Capture took %.2f sec (%.2f to save on disk)",
+            bcolors.SUCCESS,
+            bcolors.NONE,
+            end_t - start_t,
+            end_t - start_save_t,
+        )
 
         return {"hz_image": hz_image, "vt_image": vt_image}
 
