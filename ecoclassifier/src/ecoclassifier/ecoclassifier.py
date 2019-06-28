@@ -33,7 +33,7 @@ import imutils
 
 from . import settings
 from . import plc
-from .camera import Cameras
+from .camera import Camera
 from .barcode import BarcodeReader
 from . import bcolors
 from .material_classifier import MaterialClassifier
@@ -83,15 +83,14 @@ class Ecoclassifier(object):
 
         # Load camera settings
         logger.info("Loading cameras configurations")
-        self.cameras = Cameras()
-        # self.vt_camera = Camera(ip=settings.CAMERA_VT_IP)
-        # self.vt_camera.loadConf(settings.CAMERA_VT_SETTINGS_PATH)
-        # vt_camera.detach()
-        # del vt_camera
-        # self.hz_camera = Camera(ip=settings.CAMERA_HZ_IP)
-        # self.hz_camera.loadConf(settings.CAMERA_HZ_SETTINGS_PATH)
-        # hz_camera.detach()
-        # del hz_camera
+        vt_camera = Camera(ip=settings.CAMERA_VT_IP)
+        vt_camera.loadConf(settings.CAMERA_VT_SETTINGS_PATH)
+        vt_camera.detach()
+        del vt_camera
+        hz_camera = Camera(ip=settings.CAMERA_HZ_IP)
+        hz_camera.loadConf(settings.CAMERA_HZ_SETTINGS_PATH)
+        hz_camera.detach()
+        del hz_camera
 
         # Connect PLC
         self.client = plc.PLC(settings.PLC_ADDRESS)
@@ -255,8 +254,8 @@ class Ecoclassifier(object):
             self.send_plc_answer(settings.PLC_ANSWER_MATERIAL_LEARN_START)
 
         # Take pictures
-        vt_image, hz_image = self.cameras.grab_images(self.is_door_opened())
-        self.cameras.save_images(vt_image, hz_image)
+        vt_image, hz_image = self.grab_images(self.is_door_opened())
+        self.save_images(vt_image, hz_image)
 
         # Say we're done
         if not silent:
@@ -295,7 +294,7 @@ class Ecoclassifier(object):
             ):
                 logger.debug("Entering barcode reading loop")
                 start_frame_t = time.time()
-                frame = self.cameras.grab_images(self.is_door_opened())[0]
+                frame = self.grab_images(self.is_door_opened())[0]
 
                 # Convert to a suitable format
                 image = cv2.cvtColor(frame, cv2.COLOR_BAYER_RG2RGB)
@@ -336,6 +335,70 @@ class Ecoclassifier(object):
             if detected and start_answer == settings.PLC_ANSWER_BARCODE_LEARN_START:
                 self.learn_material(silent=True)
 
+    def grab_images(self, door_is_opened=True):
+        """Return a (vt_array, hz_array) image tuple.
+        If front door is open, do NOT take a picture with HZ camera.
+        """
+        vt_image = None
+        hz_image = None
+
+        # Take pictures camera per camera, VT first
+        vt_camera = Camera(ip=settings.CAMERA_VT_IP)
+        try:
+            vt_image = vt_camera.grabImage()
+
+            # Take HZ, this will trigger lighting.
+            if not door_is_opened:
+                hz_camera = Camera(ip=settings.CAMERA_HZ_IP)
+                try:
+                    hz_image = hz_camera.grabImage()
+
+                finally:
+                    hz_camera.detach()
+
+        finally:
+            vt_camera.detach()
+
+        return (vt_image, hz_image)
+
+    def save_images(self, vt_image, hz_image, ratio=1):
+        """Save images on the fly"""
+        for ip, frame in (
+            (settings.CAMERA_VT_IP, vt_image),
+            (settings.CAMERA_HZ_IP, hz_image),
+        ):
+            # make filename like yyyy-mm-dd-hh-mm-ss-nn-cam_id.png
+            curtime = str(datetime.datetime.today())
+            curtime = curtime.replace(" ", "-")
+            curtime = curtime.replace(":", "-")
+            curtime = curtime.replace(".", "-")
+            name = ip.replace(".", "-")
+            if ip == settings.CAMERA_HZ_IP:
+                name += "K"
+            elif ip == settings.CAMERA_VT_IP:
+                name += "H"
+            path = os.path.join(
+                settings.GRAB_PATH, "" + curtime + "-CAM" + name + ".png"
+            )
+
+            # convert image to good RGB pixel format
+            if len(frame.shape) == 2:
+                img = cv2.cvtColor(frame, cv2.COLOR_BAYER_RG2RGB)
+            else:
+                img = frame
+
+            # Fix .32 camera that behaves unpredictically when shut down
+            if ip == settings.CAMERA_HZ_IP:
+                img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+
+            # Adapt ratio if necessary
+            if ratio != 1:
+                img = cv2.resize(img, None, fx=ratio, fy=ratio)
+
+            # Save image tyo specified path
+            logger.debug("Saving %s", path)
+            cv2.imwrite(path, img)
+
     @tenacity.retry(
         wait=tenacity.wait_exponential(multiplier=1, min=1, max=3),
         after=tenacity.after_log(logger, logging.DEBUG),
@@ -349,7 +412,7 @@ class Ecoclassifier(object):
             door_was_open = self.is_door_opened()
             current_material = settings.MATERIAL_CODE_UNKNOWN
             if not self.is_door_opened():
-                vt_image, hz_image = self.cameras.grab_images(self.is_door_opened())
+                vt_image, hz_image = self.grab_images(False)
                 current_material = self.get_material(vt_image, hz_image)
 
             # Main program loop
@@ -364,7 +427,7 @@ class Ecoclassifier(object):
                     door_was_open = True
                 elif door_was_open:
                     door_was_open = False
-                    vt_image, hz_image = self.cameras.grab_images(self.is_door_opened())
+                    vt_image, hz_image = self.grab_images(self.is_door_opened())
                     current_material = self.get_material(vt_image, hz_image)
 
                 # Depending on the PLC status, decide what to do
@@ -405,7 +468,7 @@ class Ecoclassifier(object):
                         self.send_plc_answer(settings.PLC_ANSWER_MATERIAL_READ_DONE)
 
                     # Save images
-                    self.cameras.save_images(vt_image, hz_image)
+                    self.save_images(vt_image, hz_image)
                 else:
                     raise NotImplementedError("Invalid command: {}".format(command))
 
