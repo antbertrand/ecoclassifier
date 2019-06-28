@@ -53,7 +53,10 @@ class Cameras:
 
         # Use the former grabbing strategy
         r1 = self.vt_camera.grabImage()
-        r2 = self.vt_camera.grabImage()
+        if not door_open:
+            r2 = self.hz_camera.grabImage()
+        else:
+            r2 = None
 
         # # # Light on
         # # if not door_open:
