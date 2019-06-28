@@ -48,7 +48,6 @@ class Cameras:
         """Grab images from the camera, ONE-BY-ONE MODE
         Return (VT, HZ)"""
         # MUST set, TOTAL number of images to grab per camera !
-        pylon = py
         start_t = time.time()
 
         # Use the former grabbing strategy
