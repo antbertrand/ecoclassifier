@@ -368,6 +368,10 @@ class Ecoclassifier(object):
             (settings.CAMERA_VT_IP, vt_image),
             (settings.CAMERA_HZ_IP, hz_image),
         ):
+            # Skip None frames
+            if not frame:
+                continue
+
             # make filename like yyyy-mm-dd-hh-mm-ss-nn-cam_id.png
             curtime = str(datetime.datetime.today())
             curtime = curtime.replace(" ", "-")
