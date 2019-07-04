@@ -369,7 +369,7 @@ class Ecoclassifier(object):
             (settings.CAMERA_HZ_IP, hz_image),
         ):
             # Skip None frames
-            if not frame:
+            if frame is None:
                 continue
 
             # make filename like yyyy-mm-dd-hh-mm-ss-nn-cam_id.png
