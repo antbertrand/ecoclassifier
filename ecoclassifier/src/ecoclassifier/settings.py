@@ -26,15 +26,17 @@ import logging
 LOG_FORMAT = "[%(asctime)s] p%(process)-8s %(levelname)-8s {%(name)s:%(filename)s:%(lineno)d} - %(message)s"
 logging.basicConfig(format=LOG_FORMAT, level=logging.DEBUG)
 logging.getLogger("snap7").setLevel(logging.INFO)
+logging.getLogger("azure").setLevel(logging.INFO)
+logging.getLogger("urllib3").setLevel(logging.INFO)
 
 # Where am I
 HERE = os.path.dirname(os.path.realpath(__file__))
 
 # Output path
-GRAB_PATH = "/home/majurca/var/acquisitions"
+GRAB_PATH = "/var/majurca/acquisitions"
 
 # Loop configuration
-MAIN_LOOP_POOLING_WAIT_SECONDS = 1
+MAIN_LOOP_POOLING_WAIT_SECONDS = 0.1
 BARCODE_POOLING_WAIT_SECONDS = 0
 
 # PLC configuration
@@ -51,6 +53,7 @@ PLC_TABLE_COMMAND_READ = 43
 PLC_TABLE_COMMAND_INDEX = 2
 PLC_TABLE_ANSWER_WRITE = 42
 PLC_TABLE_ANSWER_INDEX = 2
+PLC_TABLE_DOOR_INDEX = 4
 PLC_TABLE_BARCODE_STATUS_WRITE = 42
 # PLC_TABLE_BARCODE_STATUS_INDEX = None
 PLC_TABLE_BARCODE_CONTENT_WRITE = 42
@@ -66,6 +69,8 @@ PLC_COMMAND_READ_BARCODE = b"\x00\x0b"  # Read barcode
 PLC_COMMAND_LEARN_BARCODE = b"\x00\x15"  # Learn barcodes
 PLC_COMMAND_READ_MATERIAL = b"\x00\x1f"
 PLC_COMMAND_LEARN_MATERIAL = b"\x00\x29"
+PLC_DOOR_CLOSED = b"\x00\x01"
+PLC_DOOR_OPENED = b"\x00\x00"
 
 # Command answers
 PLC_ANSWER_MAIN_LOOP = b"\x00\x00"
@@ -112,7 +117,9 @@ PLC_ANSWER_MATERIAL_EMPTY = b"\x00\x21"
 # 20 # PET <1> opaque
 # 22 # Opercule aluminium
 MATERIAL_CODE_UNKNOWN = b"0\x00"
-MATERIAL_CODE_PET_LIGHT = b"1\x00"
+MATERIAL_CODE_PET_CLAIR = b"1\x00"
+MATERIAL_CODE_PET_FONCE = b"2\x00"
+MATERIAL_CODE_PE_HD_OPAQUE = b"3\x00"
 
 # Cameras serial numbers
 # HZ is for Horizontal (front-facing) cameras.
