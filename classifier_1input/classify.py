@@ -1,14 +1,9 @@
-
-
 from keras.models import load_model
 import numpy as np
 from keras.preprocessing import image
 
 
-
-
-
-def classify(im,model):
+def classify(im, model):
     """Classifies an image (np array or keras array)
         See here for difference:
         https://stackoverflow.com/questions/53718409/numpy-array-vs-img-to-array
@@ -27,13 +22,9 @@ def classify(im,model):
 
    """
 
-
     classe = model.predict(im)
-    classe =classe.argmax(axis = -1) #taking index of the maximum %
+    classe = classe.argmax(axis=-1)  # taking index of the maximum %
     return classe[0]
-
-
-
 
 
 def main():
@@ -41,15 +32,15 @@ def main():
     HEIGHT = 224
     WIDTH = 224
 
-    model = load_model('vide_petc_petf-vgg16-20190423141400.h5')
+    model = load_model("vide_petc_petf-vgg16-20190423141400.h5")
 
-    im_path = './dataset/wsEN4iv2SliFUuYNXIM-5Q_0b9FT9bgTKSFE4NaMtMCwA_320x200.png'
+    im_path = "./dataset/wsEN4iv2SliFUuYNXIM-5Q_0b9FT9bgTKSFE4NaMtMCwA_320x200.png"
 
-    img = image.load_img(im_path, target_size=(HEIGHT, WIDTH)) #resize
+    img = image.load_img(im_path, target_size=(HEIGHT, WIDTH))  # resize
     img = image.img_to_array(img)
-    img = np.expand_dims(img, axis=0)# correct shape for classification
+    img = np.expand_dims(img, axis=0)  # correct shape for classification
 
-    print(classify(img,model))
+    print(classify(img, model))
 
 
 main()

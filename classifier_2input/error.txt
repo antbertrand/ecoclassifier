@@ -1,0 +1,142 @@
+Epoch 1/100
+
+---------------------------------------------------------------------------
+KeyError                                  Traceback (most recent call last)
+~/.virtualenvs/test/lib/python3.6/site-packages/pandas/core/indexes/base.py in get_loc(self, key, method, tolerance)
+   2656             try:
+-> 2657                 return self._engine.get_loc(key)
+   2658             except KeyError:
+
+pandas/_libs/index.pyx in pandas._libs.index.IndexEngine.get_loc()
+
+pandas/_libs/index.pyx in pandas._libs.index.IndexEngine.get_loc()
+
+pandas/_libs/hashtable_class_helper.pxi in pandas._libs.hashtable.PyObjectHashTable.get_item()
+
+pandas/_libs/hashtable_class_helper.pxi in pandas._libs.hashtable.PyObjectHashTable.get_item()
+
+KeyError: 'filename'
+
+During handling of the above exception, another exception occurred:
+
+KeyError                                  Traceback (most recent call last)
+<ipython-input-20-4f801972c65c> in <module>
+      4                         validation_data = validation_generator,
+      5                         validation_steps = n_val_samples // batch_size,
+----> 6                         shuffle=False)
+      7 
+
+~/.virtualenvs/test/lib/python3.6/site-packages/keras/legacy/interfaces.py in wrapper(*args, **kwargs)
+     89                 warnings.warn('Update your `' + object_name + '` call to the ' +
+     90                               'Keras 2 API: ' + signature, stacklevel=2)
+---> 91             return func(*args, **kwargs)
+     92         wrapper._original_function = func
+     93         return wrapper
+
+~/.virtualenvs/test/lib/python3.6/site-packages/keras/engine/training.py in fit_generator(self, generator, steps_per_epoch, epochs, verbose, callbacks, validation_data, validation_steps, class_weight, max_queue_size, workers, use_multiprocessing, shuffle, initial_epoch)
+   1416             use_multiprocessing=use_multiprocessing,
+   1417             shuffle=shuffle,
+-> 1418             initial_epoch=initial_epoch)
+   1419 
+   1420     @interfaces.legacy_generator_methods_support
+
+~/.virtualenvs/test/lib/python3.6/site-packages/keras/engine/training_generator.py in fit_generator(model, generator, steps_per_epoch, epochs, verbose, callbacks, validation_data, validation_steps, class_weight, max_queue_size, workers, use_multiprocessing, shuffle, initial_epoch)
+    179             batch_index = 0
+    180             while steps_done < steps_per_epoch:
+--> 181                 generator_output = next(output_generator)
+    182 
+    183                 if not hasattr(generator_output, '__len__'):
+
+~/.virtualenvs/test/lib/python3.6/site-packages/keras/utils/data_utils.py in get(self)
+    707                     "`use_multiprocessing=False, workers > 1`."
+    708                     "For more information see issue #1638.")
+--> 709             six.reraise(*sys.exc_info())
+
+~/.virtualenvs/test/lib/python3.6/site-packages/six.py in reraise(tp, value, tb)
+    691             if value.__traceback__ is not tb:
+    692                 raise value.with_traceback(tb)
+--> 693             raise value
+    694         finally:
+    695             value = None
+
+~/.virtualenvs/test/lib/python3.6/site-packages/keras/utils/data_utils.py in get(self)
+    683         try:
+    684             while self.is_running():
+--> 685                 inputs = self.queue.get(block=True).get()
+    686                 self.queue.task_done()
+    687                 if inputs is not None:
+
+/usr/lib/python3.6/multiprocessing/pool.py in get(self, timeout)
+    668             return self._value
+    669         else:
+--> 670             raise self._value
+    671 
+    672     def _set(self, i, obj):
+
+/usr/lib/python3.6/multiprocessing/pool.py in worker(inqueue, outqueue, initializer, initargs, maxtasks, wrap_exception)
+    117         job, i, func, args, kwds = task
+    118         try:
+--> 119             result = (True, func(*args, **kwds))
+    120         except Exception as e:
+    121             if wrap_exception and func is not _helper_reraises_exception:
+
+~/.virtualenvs/test/lib/python3.6/site-packages/keras/utils/data_utils.py in next_sample(uid)
+    624         The next value of generator `uid`.
+    625     """
+--> 626     return six.next(_SHARED_SEQUENCES[uid])
+    627 
+    628 
+
+<ipython-input-18-13b20c490b1d> in generate_generator_multiple(generator, X1, X2, batch_size, img_height, img_width, target_labels, split_name)
+     32                                           classes = target_labels,
+     33                                           shuffle=False,
+---> 34                                           seed=7)
+     35 
+     36     genX2 = generator.flow_from_dataframe(X2,
+
+~/.virtualenvs/test/lib/python3.6/site-packages/keras_preprocessing/image/image_data_generator.py in flow_from_dataframe(self, dataframe, directory, x_col, y_col, target_size, color_mode, classes, class_mode, batch_size, shuffle, seed, save_to_dir, save_prefix, save_format, subset, interpolation, drop_duplicates, **kwargs)
+    664             subset=subset,
+    665             interpolation=interpolation,
+--> 666             drop_duplicates=drop_duplicates
+    667         )
+    668 
+
+~/.virtualenvs/test/lib/python3.6/site-packages/keras_preprocessing/image/dataframe_iterator.py in __init__(self, dataframe, directory, image_data_generator, x_col, y_col, target_size, color_mode, classes, class_mode, batch_size, shuffle, seed, data_format, save_to_dir, save_prefix, save_format, subset, interpolation, dtype, drop_duplicates)
+    118         self.dtype = dtype
+    119         # check that inputs match the required class_mode
+--> 120         self._check_params(df, x_col, y_col, classes)
+    121         if drop_duplicates:
+    122             df.drop_duplicates(x_col, inplace=True)
+
+~/.virtualenvs/test/lib/python3.6/site-packages/keras_preprocessing/image/dataframe_iterator.py in _check_params(self, df, x_col, y_col, classes)
+    162                              .format(self.class_mode, self.allowed_class_modes))
+    163         # check that filenames/filepaths column values are all strings
+--> 164         if not all(df[x_col].apply(lambda x: isinstance(x, str))):
+    165             raise ValueError('All values in column x_col={} must be strings.'
+    166                              .format(x_col))
+
+~/.virtualenvs/test/lib/python3.6/site-packages/pandas/core/frame.py in __getitem__(self, key)
+   2925             if self.columns.nlevels > 1:
+   2926                 return self._getitem_multilevel(key)
+-> 2927             indexer = self.columns.get_loc(key)
+   2928             if is_integer(indexer):
+   2929                 indexer = [indexer]
+
+~/.virtualenvs/test/lib/python3.6/site-packages/pandas/core/indexes/base.py in get_loc(self, key, method, tolerance)
+   2657                 return self._engine.get_loc(key)
+   2658             except KeyError:
+-> 2659                 return self._engine.get_loc(self._maybe_cast_indexer(key))
+   2660         indexer = self.get_indexer([key], method=method, tolerance=tolerance)
+   2661         if indexer.ndim > 1 or indexer.size > 1:
+
+pandas/_libs/index.pyx in pandas._libs.index.IndexEngine.get_loc()
+
+pandas/_libs/index.pyx in pandas._libs.index.IndexEngine.get_loc()
+
+pandas/_libs/hashtable_class_helper.pxi in pandas._libs.hashtable.PyObjectHashTable.get_item()
+
+pandas/_libs/hashtable_class_helper.pxi in pandas._libs.hashtable.PyObjectHashTable.get_item()
+
+KeyError: 'filename'
+
+

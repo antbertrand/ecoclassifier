@@ -85,3 +85,14 @@ Prediction time, single image (CPU) |   ? (faster than vgg16)   |   0.64s   |   
 #### 4 classes : godet-vide vs pe-hd-opaque vs pet-clair vs pet-fonce
 
 ![confmat_4classes](screenshots/confmat_4class.jpg)
+
+
+
+<br />
+<br />
+<br />
+<br />
+
+## Re-training a model
+
+It is a a really classic classifier to train. The "tricky" part is to prepare and organize the data.
