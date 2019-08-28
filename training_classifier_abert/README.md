@@ -75,6 +75,8 @@ Prediction time, single image (CPU) |   ? (faster than vgg16)   |   0.64s   |   
 
 ## Results with VGG16
 
+Look at the pdfs in the rapports folder. They hold the confusion matrixes of the latest performances.
+
 #### 3 classes : godet-vide vs pet-clair vs pet-fonce
 
 ![confmat_3classes](screenshots/confmat_3class.jpg)
@@ -98,4 +100,4 @@ Prediction time, single image (CPU) |   ? (faster than vgg16)   |   0.64s   |   
 <br />
 
 It is a a really classic classifier to train.
-You can find everything either in the jupyters or in the
+You can find everything either in the jupyters or in the classify_training.py

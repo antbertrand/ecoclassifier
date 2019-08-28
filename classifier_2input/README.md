@@ -8,7 +8,7 @@ We feed both those inputs into a custom dual input/ dual VGG16 neural network, a
 
 ## Prepare the data
 
-We need to use the info in the .json to group the images of the same object/ take approximately at the same time.
+We need to use the info in the .json to group the images of the same object, which means they were taken approximately at the same time.
 
 All of this process is done in the dataset_2input.ipynb jupyter notebook.
 
@@ -22,7 +22,7 @@ The pair_only_info.csv is the one that we will use, as it gives the info of the 
 
 # Train the NN
 
-The that is built looks like that:
+The NN that is built looks like that:
 
 ![architecture](./full_model.png)
 
